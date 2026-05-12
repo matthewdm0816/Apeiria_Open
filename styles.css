@@ -439,7 +439,7 @@ h3 {
 
 .teaser-track {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   overflow-x: auto;
   padding: 4px 2px 18px;
@@ -470,24 +470,25 @@ h3 {
 .teaser-slide {
   flex: 0 0 min(1040px, 90%);
   margin: 0;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--white);
-  box-shadow: 0 14px 38px rgba(19, 32, 31, 0.08);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   scroll-snap-align: center;
-  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
+  opacity: 0.58;
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
 .teaser-slide.is-active {
-  border-color: rgba(8, 123, 117, 0.35);
-  box-shadow: 0 18px 48px rgba(19, 32, 31, 0.12);
-  transform: translateY(-2px);
+  opacity: 1;
+  transform: none;
 }
 
 .teaser-slide img {
   width: 100%;
   height: auto;
+  border-radius: var(--radius);
 }
 
 .split {

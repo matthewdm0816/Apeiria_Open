@@ -54,6 +54,20 @@ teaserViewers.forEach((viewer) => {
 
   if (!track || !tabs.length || !slides.length) return;
 
+  const scrollToSlide = (index, behavior = "smooth") => {
+    const slide = slides[index];
+
+    if (!slide) return;
+
+    const left =
+      slide.offsetLeft - track.offsetLeft - (track.clientWidth - slide.clientWidth) / 2;
+
+    track.scrollTo({
+      left: Math.max(0, left),
+      behavior: reduceMotion ? "auto" : behavior,
+    });
+  };
+
   const setActive = (index) => {
     tabs.forEach((tab, tabIndex) => {
       const isActive = tabIndex === index;
@@ -74,11 +88,7 @@ teaserViewers.forEach((viewer) => {
       if (!slide) return;
 
       setActive(index);
-      slide.scrollIntoView({
-        behavior: reduceMotion ? "auto" : "smooth",
-        block: "nearest",
-        inline: "center",
-      });
+      scrollToSlide(index);
     });
   });
 
@@ -97,6 +107,14 @@ teaserViewers.forEach((viewer) => {
   );
 
   slides.forEach((slide) => teaserObserver.observe(slide));
+
+  const initialIndex = Math.max(
+    0,
+    tabs.findIndex((tab) => tab.classList.contains("is-active"))
+  );
+
+  setActive(initialIndex);
+  requestAnimationFrame(() => scrollToSlide(initialIndex, "auto"));
 });
 
 copyButton?.addEventListener("click", async () => {
