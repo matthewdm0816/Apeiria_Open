@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="APEIRIA project page: distilling neuro-symbolic programs into 3D multi-modal LLMs for interpretable spatial reasoning.">
+    <meta name="theme-color" content="#f7fbfb">
+    <title>APEIRIA | Distilling Neuro-Symbolic Programs into 3D Multi-modal LLMs</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header" data-header>
+      <a class="brand" href="#top" aria-label="APEIRIA home">
+        <span class="brand-mark">A</span>
+        <span>APEIRIA</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#abstract">Abstract</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#bibtex">BibTeX</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero section-band" aria-labelledby="paper-title">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="container hero-layout">
+          <div class="hero-copy">
+            <p class="eyebrow">ICML 2026 Submission · 3D Spatial Reasoning</p>
+            <h1 id="paper-title">Distilling Neuro-Symbolic Programs into 3D Multi-modal LLMs</h1>
+            <p class="subtitle">
+              APEIRIA transfers transparent symbolic reasoning patterns into 3D MLLMs,
+              enabling open-vocabulary spatial grounding with explicit, verifiable
+              chain-of-thought traces.
+            </p>
+            <div class="hero-actions" aria-label="Project actions">
+              <a class="button primary" href="#abstract">Read Overview</a>
+              <a class="button" href="#method">View Method</a>
+              <a class="button" href="assets/paper.pdf" target="_blank" rel="noopener">Paper PDF</a>
+            </div>
+            <div class="hero-meta" aria-label="Project metadata">
+              <span>Anonymous Authors</span>
+              <span>Neuro-symbolic reasoning</span>
+              <span>Object-centric 3D MLLM</span>
+            </div>
+          </div>
+
+          <div class="peek-wrap" aria-label="Animated project motif">
+            <div class="logic-panel">
+              <div class="panel-topline">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div class="program-line wide"></div>
+              <div class="program-line"></div>
+              <div class="program-line short"></div>
+              <div class="program-grid">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+            <div class="peek-person" aria-hidden="true">
+              <span class="placeholder-head"></span>
+              <span class="placeholder-body"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="teaser-section section-band light" aria-labelledby="teaser-title">
+        <div class="container">
+          <div class="section-kicker">Bridge</div>
+          <h2 id="teaser-title">Interpretable programs meet flexible 3D MLLMs.</h2>
+          <figure class="figure-panel large">
+            <picture>
+              <source srcset="assets/teaser.webp" type="image/webp">
+              <img src="assets/teaser.png" alt="Teaser figure comparing black-box 3D MLLMs, neuro-symbolic programs, and APEIRIA's bridge between them.">
+            </picture>
+          </figure>
+        </div>
+      </section>
+
+      <section id="abstract" class="section-band" aria-labelledby="abstract-title">
+        <div class="container split">
+          <div>
+            <div class="section-kicker">Abstract</div>
+            <h2 id="abstract-title">A unified route from symbolic verification to open-world 3D reasoning.</h2>
+          </div>
+          <div class="prose">
+            <p>
+              Current 3D spatial reasoning methods face a trade-off: neuro-symbolic
+              3D learners provide interpretable compositional programs but remain
+              tied to closed-set vocabularies, while end-to-end 3D MLLMs can handle
+              free-form language yet often reason as opaque pattern matchers.
+            </p>
+            <p>
+              APEIRIA bridges these paradigms by distilling verified symbolic
+              execution traces into natural language chain-of-thought. A three-stage
+              curriculum first aligns object-centric 3D perception with language,
+              then injects systematic program-style reasoning via CoT-SFT, and
+              finally extends the learned patterns to open-set concepts and complex
+              nested instructions through CoT-RL.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-band tinted" aria-labelledby="ideas-title">
+        <div class="container">
+          <div class="section-kicker">Contributions</div>
+          <h2 id="ideas-title">Three design choices carry the project.</h2>
+          <div class="idea-grid">
+            <article class="idea-card">
+              <span class="idea-index">01</span>
+              <h3>Reasoning Pattern Distillation</h3>
+              <p>Symbolic programs provide verified plans and executions that teach decomposition, filtering, relation checks, and grounded summaries.</p>
+            </article>
+            <article class="idea-card">
+              <span class="idea-index">02</span>
+              <h3>Object-Centric 3D Inputs</h3>
+              <p>Compact instance-level features preserve visual, geometric, and spatial structure with far fewer tokens than video-style 3D MLLMs.</p>
+            </article>
+            <article class="idea-card">
+              <span class="idea-index">03</span>
+              <h3>Modular Inference</h3>
+              <p>Planning and perception remain inspectable interfaces, so stronger external planners or 3D perception modules can be plugged in at inference time.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="method" class="section-band" aria-labelledby="method-title">
+        <div class="container">
+          <div class="section-heading">
+            <div>
+              <div class="section-kicker">Method</div>
+              <h2 id="method-title">Progressive curriculum-based reasoning distillation.</h2>
+            </div>
+            <p>
+              APEIRIA learns to see, think, and adapt through a simple-to-complex
+              progression that preserves the clarity of symbolic programs.
+            </p>
+          </div>
+          <figure class="figure-panel">
+            <picture>
+              <source srcset="assets/method.webp" type="image/webp">
+              <img src="assets/method.png" alt="Method overview showing three-stage curriculum and program-to-chain-of-thought translation.">
+            </picture>
+          </figure>
+          <div class="stage-grid">
+            <article>
+              <span>Stage 1</span>
+              <h3>Perception Alignment</h3>
+              <p>Align 3D visual-geometric object features with textual concepts for categories, attributes, and locations.</p>
+            </article>
+            <article>
+              <span>Stage 2</span>
+              <h3>Symbolic Reasoning Injection</h3>
+              <p>Serialize neuro-symbolic programs into CoT traces that expose plans, object IDs, locations, and step outputs.</p>
+            </article>
+            <article>
+              <span>Stage 3</span>
+              <h3>Open-Set Generalization</h3>
+              <p>Use GRPO with format and soft grounding rewards to adapt reasoning to real-world language and deeper nesting.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="results" class="section-band dark" aria-labelledby="results-title">
+        <div class="container">
+          <div class="section-heading">
+            <div>
+              <div class="section-kicker">Results</div>
+              <h2 id="results-title">Strong spatial reasoning with transparent outputs.</h2>
+            </div>
+            <p>
+              APEIRIA improves over prior neuro-symbolic methods and competitive
+              3D MLLMs on ScanRefer and Multi3DRefer, with modular enhancement
+              pushing performance further.
+            </p>
+          </div>
+
+          <div class="metric-grid" aria-label="Headline metrics">
+            <div class="metric-card">
+              <span>ScanRefer Acc@0.25</span>
+              <strong>60.5</strong>
+              <small>APEIRIA with modular enhancement</small>
+            </div>
+            <div class="metric-card">
+              <span>ScanRefer Acc@0.5</span>
+              <strong>53.2</strong>
+              <small>Best reported in the paper table</small>
+            </div>
+            <div class="metric-card">
+              <span>Multi3DRefer F1@0.25</span>
+              <strong>60.9</strong>
+              <small>Full modular enhancement</small>
+            </div>
+            <div class="metric-card">
+              <span>Multi3DRefer F1@0.5</span>
+              <strong>55.2</strong>
+              <small>Full modular enhancement</small>
+            </div>
+          </div>
+
+          <div class="table-wrap" role="region" aria-label="3D spatial reasoning comparison table" tabindex="0">
+            <table>
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Output</th>
+                  <th>ScanRefer<br>Acc@0.25</th>
+                  <th>ScanRefer<br>Acc@0.5</th>
+                  <th>Multi3DRefer<br>F1@0.25</th>
+                  <th>Multi3DRefer<br>F1@0.5</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Video-3D LLM</td>
+                  <td>Head</td>
+                  <td>58.1</td>
+                  <td>51.7</td>
+                  <td>58.0</td>
+                  <td>52.7</td>
+                </tr>
+                <tr>
+                  <td>Inst3D-LMM</td>
+                  <td>Text</td>
+                  <td>57.8</td>
+                  <td>51.6</td>
+                  <td>58.3</td>
+                  <td>53.5</td>
+                </tr>
+                <tr class="ours">
+                  <td>APEIRIA</td>
+                  <td>Text</td>
+                  <td>58.4</td>
+                  <td>51.2</td>
+                  <td>59.2</td>
+                  <td>53.8</td>
+                </tr>
+                <tr class="ours strong">
+                  <td>APEIRIA + modular enhancement</td>
+                  <td>Text</td>
+                  <td>60.5</td>
+                  <td>53.2</td>
+                  <td>60.9</td>
+                  <td>55.2</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-band light" aria-labelledby="qual-title">
+        <div class="container split reverse">
+          <div class="prose">
+            <div class="section-kicker">Reasoning Behavior</div>
+            <h2 id="qual-title">The model exposes its spatial verification path.</h2>
+            <p>
+              CoT-RL encourages APEIRIA to preserve a planning-then-execution
+              structure while extending beyond fixed program templates. The model
+              can filter open-vocabulary descriptors, compose multi-condition
+              relations, and summarize grounded object IDs.
+            </p>
+            <div class="trace-box" aria-label="Condensed reasoning trace example">
+              <p><strong>Plan</strong> Find beige chairs, coat racks, tables, and lamps.</p>
+              <p><strong>Execute</strong> Filter candidate objects and inspect their coordinates.</p>
+              <p><strong>Verify</strong> Select the chair next to the coat rack and left of the table and lamp.</p>
+              <p><strong>Answer</strong> Return the matching object ID and 3D box.</p>
+            </div>
+          </div>
+          <figure class="figure-panel compact">
+            <picture>
+              <source srcset="assets/qualitative.webp" type="image/webp">
+              <img src="assets/qualitative.png" alt="Qualitative reasoning figure showing a chain-of-thought style grounding trace.">
+            </picture>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section-band" aria-labelledby="modular-title">
+        <div class="container modular-layout">
+          <div>
+            <div class="section-kicker">Modularity</div>
+            <h2 id="modular-title">Better perception modules can lift the same reasoning scaffold.</h2>
+            <p>
+              Because APEIRIA keeps planning and execution decoupled, the system can
+              use stronger external scene perception without retraining the whole MLLM.
+            </p>
+          </div>
+          <div class="module-bars" aria-label="Modularity comparison">
+            <div class="bar-row">
+              <span>Self perception</span>
+              <div class="bar"><i style="width: 88%"></i></div>
+              <strong>58.4</strong>
+            </div>
+            <div class="bar-row">
+              <span>SegDINO3D</span>
+              <div class="bar"><i style="width: 94%"></i></div>
+              <strong>60.4</strong>
+            </div>
+            <div class="bar-row">
+              <span>Oracle labels</span>
+              <div class="bar"><i style="width: 98%"></i></div>
+              <strong>61.3</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="bibtex" class="section-band tinted" aria-labelledby="bibtex-title">
+        <div class="container bib-layout">
+          <div>
+            <div class="section-kicker">Citation</div>
+            <h2 id="bibtex-title">BibTeX</h2>
+            <p class="bib-note">Replace author and venue fields after the camera-ready version is available.</p>
+          </div>
+          <div class="bib-card">
+            <button class="copy-button" type="button" data-copy="#bibtex-code">Copy</button>
+            <pre id="bibtex-code"><code>@inproceedings{apeiria2026,
+  title={Distilling Neuro-Symbolic Programs into 3D Multi-modal LLMs},
+  author={Anonymous Authors},
+  booktitle={International Conference on Machine Learning},
+  year={2026}
+}</code></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span>APEIRIA Project Page</span>
+        <a href="#top">Back to top</a>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
