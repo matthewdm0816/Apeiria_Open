@@ -15,7 +15,7 @@
   <body>
     <header class="site-header" data-header>
       <a class="brand" href="#top" aria-label="APEIRIA home">
-        <span class="brand-mark">A</span>
+        <span class="brand-mark"><img src="assets/icon-192.png" alt=""></span>
         <span>APEIRIA</span>
       </a>
       <nav class="site-nav" aria-label="Primary navigation">
@@ -307,18 +307,66 @@
               can filter open-vocabulary descriptors, compose multi-condition
               relations, and summarize grounded object IDs.
             </p>
-            <div class="trace-box" aria-label="Condensed reasoning trace example">
-              <p><strong>Plan</strong> Find beige chairs, coat racks, tables, and lamps.</p>
-              <p><strong>Execute</strong> Filter candidate objects and inspect their coordinates.</p>
-              <p><strong>Verify</strong> Select the chair next to the coat rack and left of the table and lamp.</p>
-              <p><strong>Answer</strong> Return the matching object ID and 3D box.</p>
+            <div class="trace-highlights" aria-label="Trace highlights">
+              <span>Object IDs</span>
+              <span>3D positions</span>
+              <span>Relation checks</span>
             </div>
           </div>
-          <figure class="figure-panel compact">
-            <picture>
-              <source srcset="assets/qualitative.webp" type="image/webp">
-              <img src="assets/qualitative.png" alt="Qualitative reasoning figure showing a chain-of-thought style grounding trace.">
-            </picture>
+          <figure class="trace-plot" aria-labelledby="trace-plot-title">
+            <figcaption id="trace-plot-title">Trace example from Figure 5</figcaption>
+            <div class="trace-prompt">
+              <span>Instruction</span>
+              <strong>Find the vase left to the computer.</strong>
+              <em>Provide its ID, position, and dimensions.</em>
+            </div>
+            <ol class="trace-steps">
+              <li class="trace-step">
+                <span class="trace-index">01</span>
+                <div>
+                  <h3>Plan</h3>
+                  <p>Examine all objects; find vases; find computers; check which vase is left to a computer.</p>
+                </div>
+              </li>
+              <li class="trace-step">
+                <span class="trace-index">02</span>
+                <div>
+                  <h3>Scene</h3>
+                  <p>Object 0(vase), 1(vase), 2(bottle), 3(rug), ...</p>
+                </div>
+              </li>
+              <li class="trace-step">
+                <span class="trace-index">03</span>
+                <div>
+                  <h3>Filter</h3>
+                  <div class="trace-objects" aria-label="Filtered objects">
+                    <span><b>Vase 0</b> (1.15, 6.09, 1.33)</span>
+                    <span><b>Vase 1</b> (6.66, 5.41, 0.29)</span>
+                    <span><b>Computer 4</b> (2.34, 3.50, 0.75)</span>
+                    <span><b>Computer 11</b> (1.44, 4.04, 3.10)</span>
+                  </div>
+                </div>
+              </li>
+              <li class="trace-step">
+                <span class="trace-index">04</span>
+                <div>
+                  <h3>Relate</h3>
+                  <ul class="trace-relations">
+                    <li class="is-match">Vase 0 is left to Computer 4.</li>
+                    <li>Vase 0 is above and near Computer 11.</li>
+                    <li>Vase 1 is right to and near Computer 4.</li>
+                    <li>Vase 1 is right to, in front of and far from Computer 11.</li>
+                  </ul>
+                </div>
+              </li>
+              <li class="trace-step trace-answer">
+                <span class="trace-index">05</span>
+                <div>
+                  <h3>Answer</h3>
+                  <p>Object 0: position (1.15, 6.09, 1.33), size 0.86 x 0.99 x 1.79.</p>
+                </div>
+              </li>
+            </ol>
           </figure>
         </div>
       </section>
