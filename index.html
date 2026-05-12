@@ -125,7 +125,7 @@
         <div class="container split">
           <div>
             <div class="section-kicker">Abstract</div>
-            <h2 id="abstract-title">A unified route from symbolic verification to open-world 3D reasoning.</h2>
+            <h2 id="abstract-title">From rigorous neuro-symbolic reasoning to open-world 3D understanding.</h2>
           </div>
           <div class="prose">
             <p>
@@ -146,6 +146,7 @@
         </div>
       </section>
 
+      <!--
       <section class="section-band tinted" aria-labelledby="ideas-title">
         <div class="container">
           <div class="section-kicker">Contributions</div>
@@ -169,6 +170,7 @@
           </div>
         </div>
       </section>
+      -->
 
       <section id="method" class="section-band" aria-labelledby="method-title">
         <div class="container">
@@ -377,8 +379,10 @@
             <div class="section-kicker">Modularity</div>
             <h2 id="modular-title">Better perception modules can lift the same reasoning scaffold.</h2>
             <p>
-              Because APEIRIA keeps planning and execution decoupled, the system can
-              use stronger external scene perception without retraining the whole MLLM.
+              Because APEIRIA keeps planning and execution decoupled, the same
+              reasoning scaffold can accept external planners or stronger scene
+              perception at inference time. Opus plans help slightly, while better
+              perception drives the larger gains.
             </p>
           </div>
           <div class="module-visual">
@@ -386,22 +390,36 @@
               <source srcset="assets/apeiria-peek-upper.webp" type="image/webp">
               <img src="assets/apeiria-peek-upper.png" alt="">
             </picture>
-            <div class="module-bars" aria-label="Modularity comparison">
-              <div class="bar-row">
-                <span>Self perception</span>
-                <div class="bar"><i style="width: 88%"></i></div>
-                <strong>58.4</strong>
+            <div class="module-bars" aria-label="Modularity comparison on ScanRefer Acc@0.25">
+              <div class="module-axis" aria-hidden="true">
+                <span>62</span>
+                <span>60</span>
+                <span>58</span>
+                <span>56</span>
               </div>
-              <div class="bar-row">
-                <span>SegDINO3D</span>
-                <div class="bar"><i style="width: 94%"></i></div>
-                <strong>60.4</strong>
+              <div class="module-chart">
+                <div class="module-bar" style="--score: 40%;">
+                  <strong>58.4</strong>
+                  <i></i>
+                  <span>Self perception</span>
+                </div>
+                <div class="module-bar plan-bar" style="--score: 43.33%;">
+                  <strong>58.6</strong>
+                  <i></i>
+                  <span>Opus plan</span>
+                </div>
+                <div class="module-bar perception-bar" style="--score: 73.33%;">
+                  <strong>60.4</strong>
+                  <i></i>
+                  <span>SegDINO3D</span>
+                </div>
+                <div class="module-bar oracle-bar" style="--score: 88.33%;">
+                  <strong>61.3</strong>
+                  <i></i>
+                  <span>Oracle labels</span>
+                </div>
               </div>
-              <div class="bar-row">
-                <span>Oracle labels</span>
-                <div class="bar"><i style="width: 98%"></i></div>
-                <strong>61.3</strong>
-              </div>
+              <p>ScanRefer Acc@0.25, truncated axis from 56 to 62.</p>
             </div>
           </div>
         </div>
