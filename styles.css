@@ -157,13 +157,17 @@ button {
 }
 
 .title-block h1 {
-  max-width: 980px;
+  max-width: 1180px;
   margin: 0 auto 24px;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.35rem, 4.2vw, 4.35rem);
+  font-size: clamp(2.35rem, 4.05vw, 4.15rem);
   font-weight: 500;
   line-height: 1.06;
   letter-spacing: 0;
+}
+
+.title-block h1 span {
+  display: block;
 }
 
 .authors {
@@ -713,6 +717,10 @@ pre {
 
   .title-block h1 {
     font-size: clamp(2.1rem, 10.4vw, 3.35rem);
+  }
+
+  .title-block h1 span {
+    display: inline;
   }
 
   .idea-grid,
