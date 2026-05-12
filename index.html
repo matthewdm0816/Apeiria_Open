@@ -79,12 +79,45 @@
         <div class="container">
           <div class="section-kicker">Bridge</div>
           <h2 id="teaser-title">Interpretable programs meet flexible 3D MLLMs.</h2>
-          <figure class="figure-panel large">
-            <picture>
-              <source srcset="assets/teaser.webp" type="image/webp">
-              <img src="assets/teaser.png" alt="Teaser figure comparing black-box 3D MLLMs, neuro-symbolic programs, and APEIRIA's bridge between them.">
-            </picture>
-          </figure>
+          <div class="teaser-viewer" data-teaser-viewer>
+            <div class="teaser-controls" aria-label="Teaser panels">
+              <button class="teaser-tab is-active" type="button" data-teaser-index="0" aria-pressed="true" aria-controls="teaser-3d-mllm">
+                <span>01</span>
+                3D MLLM
+              </button>
+              <button class="teaser-tab" type="button" data-teaser-index="1" aria-pressed="false" aria-controls="teaser-ns3d">
+                <span>02</span>
+                NS3D
+              </button>
+              <button class="teaser-tab" type="button" data-teaser-index="2" aria-pressed="false" aria-controls="teaser-apeiria">
+                <span>03</span>
+                APEIRIA
+              </button>
+            </div>
+            <figure class="teaser-strip">
+              <div class="teaser-track" data-teaser-track tabindex="0" aria-label="Scrollable teaser comparison panels">
+                <article class="teaser-slide is-active" id="teaser-3d-mllm" data-teaser-slide>
+                  <picture>
+                    <source srcset="assets/teaser-3d-mllm.webp" type="image/webp">
+                    <img src="assets/teaser-3d-mllm.png" alt="3D multi-modal LLM block showing complex instruction and open-set concept support, but black-box reasoning.">
+                  </picture>
+                </article>
+                <article class="teaser-slide" id="teaser-ns3d" data-teaser-slide>
+                  <picture>
+                    <source srcset="assets/teaser-ns3d.webp" type="image/webp">
+                    <img src="assets/teaser-ns3d.png" alt="Neuro-symbolic methods block showing interpretable reasoning and program generalizability, but limited complex instruction and open-set concept support.">
+                  </picture>
+                </article>
+                <article class="teaser-slide" id="teaser-apeiria" data-teaser-slide>
+                  <picture>
+                    <source srcset="assets/teaser-apeiria.webp" type="image/webp">
+                    <img src="assets/teaser-apeiria.png" alt="APEIRIA block combining neuro-symbolic interpretability with 3D multi-modal LLM flexibility through transparent 3D chain-of-thought.">
+                  </picture>
+                </article>
+              </div>
+              <figcaption class="sr-only">A three-panel teaser comparing 3D MLLMs, neuro-symbolic methods, and APEIRIA.</figcaption>
+            </figure>
+          </div>
         </div>
       </section>
 
@@ -331,14 +364,14 @@
           <div>
             <div class="section-kicker">Citation</div>
             <h2 id="bibtex-title">BibTeX</h2>
-            <p class="bib-note">Replace author and venue fields after the camera-ready version is available.</p>
+            <p class="bib-note">Venue field is commented out until the camera-ready version is available.</p>
           </div>
           <div class="bib-card">
             <button class="copy-button" type="button" data-copy="#bibtex-code">Copy</button>
-            <pre id="bibtex-code"><code>@inproceedings{apeiria2026,
+            <pre id="bibtex-code"><code>@inproceedings{mo2026,
   title={Distilling Neuro-Symbolic Programs into 3D Multi-modal LLMs},
-  author={Anonymous Authors},
-  booktitle={International Conference on Machine Learning},
+  author={Mo, Wentao and Liu, Yang},
+  % booktitle={International Conference on Machine Learning},
   year={2026}
 }</code></pre>
           </div>
