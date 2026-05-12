@@ -12,6 +12,7 @@ Open `index.html` directly or publish this `project-page/` directory as the GitH
 - `styles.css`: visual system and CSS-only peek animation
 - `script.js`: active nav and BibTeX copy interaction
 - `assets/`: paper figures rendered from the LaTeX figures
+- `favicon.ico`: favicon generated from `assets/icon_large.png`
 
 ## Portrait Placeholder
 
