@@ -290,7 +290,7 @@
         </div>
       </section>
 
-      <section class="section-band" aria-labelledby="modular-title">
+      <section class="section-band character-section" aria-labelledby="modular-title" data-peek-section>
         <div class="container modular-layout">
           <div>
             <div class="section-kicker">Modularity</div>
@@ -300,21 +300,27 @@
               use stronger external scene perception without retraining the whole MLLM.
             </p>
           </div>
-          <div class="module-bars" aria-label="Modularity comparison">
-            <div class="bar-row">
-              <span>Self perception</span>
-              <div class="bar"><i style="width: 88%"></i></div>
-              <strong>58.4</strong>
-            </div>
-            <div class="bar-row">
-              <span>SegDINO3D</span>
-              <div class="bar"><i style="width: 94%"></i></div>
-              <strong>60.4</strong>
-            </div>
-            <div class="bar-row">
-              <span>Oracle labels</span>
-              <div class="bar"><i style="width: 98%"></i></div>
-              <strong>61.3</strong>
+          <div class="module-visual">
+            <picture class="apeiria-side-peek" aria-hidden="true">
+              <source srcset="assets/apeiria-peek-upper.webp" type="image/webp">
+              <img src="assets/apeiria-peek-upper.png" alt="">
+            </picture>
+            <div class="module-bars" aria-label="Modularity comparison">
+              <div class="bar-row">
+                <span>Self perception</span>
+                <div class="bar"><i style="width: 88%"></i></div>
+                <strong>58.4</strong>
+              </div>
+              <div class="bar-row">
+                <span>SegDINO3D</span>
+                <div class="bar"><i style="width: 94%"></i></div>
+                <strong>60.4</strong>
+              </div>
+              <div class="bar-row">
+                <span>Oracle labels</span>
+                <div class="bar"><i style="width: 98%"></i></div>
+                <strong>61.3</strong>
+              </div>
             </div>
           </div>
         </div>

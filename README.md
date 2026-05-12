@@ -13,12 +13,12 @@ Open `index.html` directly or publish this `project-page/` directory as the GitH
 - `script.js`: active nav and BibTeX copy interaction
 - `assets/`: paper figures rendered from the LaTeX figures
 - `favicon.ico`: favicon generated from `assets/icon_large.png`
+- `assets/apeiria-peek-upper.*`: subtle character peek asset derived from the APEIRIA portrait set
 
 ## Portrait Placeholder
 
-The side-peeking figure is currently a pure CSS placeholder in `.peek-person`.
-When the final portrait is ready, replace that block with an image element or set
-the element background to the portrait asset.
+The hero still uses a minimal CSS placeholder motif. The actual APEIRIA portrait
+is used as a quieter hover/scroll side-peek in the modularity section.
 
 ## PDF
 

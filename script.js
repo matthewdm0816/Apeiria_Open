@@ -1,6 +1,7 @@
 const header = document.querySelector("[data-header]");
 const navLinks = Array.from(document.querySelectorAll(".site-nav a"));
 const copyButton = document.querySelector("[data-copy]");
+const peekTargets = Array.from(document.querySelectorAll("[data-peek-section]"));
 
 const updateHeader = () => {
   header?.classList.toggle("is-scrolled", window.scrollY > 12);
@@ -32,6 +33,17 @@ const observer = new IntersectionObserver(
 );
 
 sections.forEach((section) => observer.observe(section));
+
+const peekObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      entry.target.classList.toggle("is-peek-visible", entry.isIntersecting);
+    });
+  },
+  { rootMargin: "-18% 0px -24% 0px", threshold: 0.35 }
+);
+
+peekTargets.forEach((target) => peekObserver.observe(target));
 
 copyButton?.addEventListener("click", async () => {
   const target = document.querySelector(copyButton.dataset.copy);
