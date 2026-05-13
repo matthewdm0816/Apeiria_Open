@@ -6,6 +6,8 @@ const teaserViewers = Array.from(document.querySelectorAll("[data-teaser-viewer]
 const themeToggle = document.querySelector("[data-theme-toggle]");
 const themeToggleText = document.querySelector("[data-theme-toggle-text]");
 const themeMeta = document.querySelector('meta[name="theme-color"]');
+const projectsMenu = document.querySelector("[data-projects-menu]");
+const projectsMenuTrigger = document.querySelector("[data-projects-menu-trigger]");
 const modularityCard = document.querySelector("[data-modularity-card]");
 const modularityChartCanvas = document.querySelector("[data-modularity-chart]");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -284,6 +286,48 @@ setTheme(getTheme());
 themeToggle?.addEventListener("click", () => {
   setTheme(getTheme() === "dark" ? "light" : "dark", true);
 });
+
+const setProjectsMenuExpanded = (expanded) => {
+  projectsMenuTrigger?.setAttribute("aria-expanded", String(expanded));
+};
+
+if (projectsMenu && projectsMenuTrigger) {
+  projectsMenu.addEventListener("pointerenter", () => {
+    projectsMenu.classList.remove("is-dismissed");
+    setProjectsMenuExpanded(true);
+  });
+
+  projectsMenu.addEventListener("pointerleave", () => {
+    projectsMenu.classList.remove("is-dismissed");
+    setProjectsMenuExpanded(false);
+  });
+
+  projectsMenu.addEventListener("focusin", () => {
+    if (!projectsMenu.classList.contains("is-dismissed")) {
+      setProjectsMenuExpanded(true);
+    }
+  });
+
+  projectsMenu.addEventListener("focusout", (event) => {
+    if (!projectsMenu.contains(event.relatedTarget)) {
+      projectsMenu.classList.remove("is-dismissed");
+      setProjectsMenuExpanded(false);
+    }
+  });
+
+  projectsMenuTrigger.addEventListener("click", () => {
+    projectsMenu.classList.add("is-dismissed");
+    setProjectsMenuExpanded(false);
+  });
+
+  projectsMenu.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+
+    projectsMenu.classList.add("is-dismissed");
+    setProjectsMenuExpanded(false);
+    projectsMenuTrigger.focus();
+  });
+}
 
 const syncSystemTheme = (event) => {
   if (getStoredTheme()) return;
