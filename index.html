@@ -1,15 +1,39 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="APEIRIA project page: distilling neuro-symbolic programs into 3D multi-modal LLMs for interpretable spatial reasoning.">
+    <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#f7fbfb">
     <title>APEIRIA | Distilling Neuro-Symbolic Programs into 3D Multi-modal LLMs</title>
     <link rel="icon" href="favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <script>
+      (function () {
+        var storageKey = "apeiria-theme";
+        var preferredTheme = "light";
+
+        try {
+          var storedTheme = localStorage.getItem(storageKey);
+          var systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          preferredTheme = systemPrefersDark ? "dark" : "light";
+
+          if (storedTheme === "dark" || storedTheme === "light") {
+            preferredTheme = storedTheme;
+          }
+        } catch (error) {
+          preferredTheme = "light";
+        }
+
+        document.documentElement.dataset.theme = preferredTheme;
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute("content", preferredTheme === "dark" ? "#0d1314" : "#f7fbfb");
+      })();
+    </script>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -18,12 +42,31 @@
         <span class="brand-mark"><img src="assets/icon-192.png" alt=""></span>
         <span>APEIRIA</span>
       </a>
-      <nav class="site-nav" aria-label="Primary navigation">
-        <a href="#abstract">Abstract</a>
-        <a href="#method">Method</a>
-        <a href="#results">Results</a>
-        <a href="#bibtex">BibTeX</a>
-      </nav>
+      <div class="header-actions">
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="#abstract">Abstract</a>
+          <a href="#method">Method</a>
+          <a href="#results">Results</a>
+          <a href="#bibtex">BibTeX</a>
+        </nav>
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false">
+          <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20.6 14.7A7.8 7.8 0 0 1 9.3 3.4a8.6 8.6 0 1 0 11.3 11.3z"></path>
+          </svg>
+          <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2"></path>
+            <path d="M12 20v2"></path>
+            <path d="m4.93 4.93 1.41 1.41"></path>
+            <path d="m17.66 17.66 1.41 1.41"></path>
+            <path d="M2 12h2"></path>
+            <path d="M20 12h2"></path>
+            <path d="m6.34 17.66-1.41 1.41"></path>
+            <path d="m19.07 4.93-1.41 1.41"></path>
+          </svg>
+          <span class="sr-only" data-theme-toggle-text>Switch to dark mode</span>
+        </button>
+      </div>
     </header>
 
     <main id="top">
@@ -129,17 +172,19 @@
           </div>
           <div class="prose">
             <p>
-              Current 3D spatial reasoning methods face a trade-off: neuro-symbolic
-              3D learners provide interpretable compositional programs but remain
-              tied to closed-set vocabularies, while end-to-end 3D MLLMs can handle
-              free-form language yet often reason as opaque pattern matchers.
+              Current 3D spatial reasoning methods sit between two imperfect
+              poles: 3D MLLMs handle free-form, open-vocabulary language but hide
+              their spatial verification process, while neuro-symbolic 3D learners
+              expose compositional programs but remain tied to closed-set concepts
+              and dense step supervision.
             </p>
             <p>
-              APEIRIA bridges these paradigms by distilling verified symbolic
-              execution traces into natural language chain-of-thought. A three-stage
-              curriculum first aligns object-centric 3D perception with language,
-              then injects systematic program-style reasoning via CoT-SFT, and
-              finally extends the learned patterns to open-set concepts and complex
+              APEIRIA decouples concept learning from reasoning learning. It
+              distills verified symbolic execution traces into natural-language
+              chain-of-thought, teaching the model the syntax of spatial reasoning
+              rather than fixed concept modules. A three-stage curriculum aligns
+              object-centric 3D perception, injects plan-and-execute reasoning via
+              CoT-SFT, and extends those patterns to open-set concepts and complex
               nested instructions through CoT-RL.
             </p>
           </div>
@@ -377,12 +422,11 @@
         <div class="container modular-layout">
           <div>
             <div class="section-kicker">Modularity</div>
-            <h2 id="modular-title">Better perception modules can lift the same reasoning scaffold.</h2>
-            <p>
-              Because APEIRIA keeps planning and execution decoupled, the same
-              reasoning scaffold can accept external planners or stronger scene
-              perception at inference time. Opus plans help slightly, while better
-              perception drives the larger gains.
+            <h2 id="modular-title">External perception and plans can lift the reasoning performance.</h2>
+            <p class="modular-copy">
+              As APEIRIA keeps planning and execution decoupled, the same
+              reasoning scaffold can accept a stronger planner or a stronger scene
+              parser at inference time. Claude Opus plans help slightly, while better perception from SegDINO3D drives the larger gains, suggesting the current bottleneck is mostly visual rather than planning.
             </p>
           </div>
           <div class="module-visual">
@@ -390,36 +434,35 @@
               <source srcset="assets/apeiria-peek-upper.webp" type="image/webp">
               <img src="assets/apeiria-peek-upper.png" alt="">
             </picture>
-            <div class="module-bars" aria-label="Modularity comparison on ScanRefer Acc@0.25">
-              <div class="module-axis" aria-hidden="true">
-                <span>62</span>
-                <span>60</span>
-                <span>58</span>
-                <span>56</span>
+            <div class="module-card" data-modularity-card>
+              <div class="module-chart-header">
+                <div>
+                  <span>Modularity Analysis</span>
+                  <strong>Inference-time module replacement</strong>
+                </div>
+                <p>Scores use a truncated 56-62 axis for readability.</p>
               </div>
-              <div class="module-chart">
-                <div class="module-bar" style="--score: 40%;">
-                  <strong>58.4</strong>
-                  <i></i>
-                  <span>Self perception</span>
-                </div>
-                <div class="module-bar plan-bar" style="--score: 43.33%;">
-                  <strong>58.6</strong>
-                  <i></i>
-                  <span>Opus plan</span>
-                </div>
-                <div class="module-bar perception-bar" style="--score: 73.33%;">
-                  <strong>60.4</strong>
-                  <i></i>
-                  <span>SegDINO3D</span>
-                </div>
-                <div class="module-bar oracle-bar" style="--score: 88.33%;">
-                  <strong>61.3</strong>
-                  <i></i>
-                  <span>Oracle labels</span>
-                </div>
+              <div class="module-chart-canvas">
+                <canvas data-modularity-chart aria-label="Grouped bar chart comparing self, external planning, external perception, oracle labels, and full modular enhancement on ScanRefer and Multi3DRefer."></canvas>
               </div>
-              <p>ScanRefer Acc@0.25, truncated axis from 56 to 62.</p>
+              <table class="module-chart-fallback">
+                <thead>
+                  <tr>
+                    <th>Source</th>
+                    <th>ScanRefer</th>
+                    <th>Multi3DRefer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Self plan + perception</td><td>58.4</td><td>59.2</td></tr>
+                  <tr><td>Claude 4.5 Opus plan</td><td>58.6</td><td>59.5</td></tr>
+                  <tr><td>Mask3D perception</td><td>58.5</td><td>58.3</td></tr>
+                  <tr><td>SegDINO3D perception</td><td>60.4</td><td>60.6</td></tr>
+                  <tr><td>Oracle labels</td><td>61.3</td><td>61.3</td></tr>
+                  <tr><td>Full modular enhancement</td><td>60.5</td><td>60.9</td></tr>
+                </tbody>
+              </table>
+              <p class="module-chart-note">Opus plan: +0.2/+0.3. SegDINO3D: +2.0/+1.4. Full enhancement: +2.1/+1.7.</p>
             </div>
           </div>
         </div>
@@ -430,7 +473,7 @@
           <div>
             <div class="section-kicker">Citation</div>
             <h2 id="bibtex-title">BibTeX</h2>
-            <p class="bib-note">Please consider citing APEIRIA if you find this work helpful.</p>
+            <p class="bib-note">Please consider citing APEIRIA if you find this work helpful to your research.</p>
           </div>
           <div class="bib-card">
             <button class="copy-button" type="button" data-copy="#bibtex-code">Copy</button>
@@ -452,6 +495,7 @@
       </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
