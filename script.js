@@ -14,19 +14,97 @@ const themeMedia = window.matchMedia("(prefers-color-scheme: dark)");
 const modularityLabels = [
   "Self",
   "Opus",
-  "Mask3D",
   "SegDINO",
   "Oracle",
   "Full",
 ];
 const modularitySeries = {
-  scanRefer: [58.4, 58.6, 58.5, 60.4, 61.3, 60.5],
-  multi3DRefer: [59.2, 59.5, 58.3, 60.6, 61.3, 60.9],
+  scanRefer: [58.4, 58.6, 60.4, 61.3, 60.5],
+  multi3DRefer: [59.2, 59.5, 60.6, 61.3, 60.9],
 };
+const modularityDeltas = [
+  "baseline",
+  "+0.2/+0.3",
+  "+2.0/+1.4",
+  "+2.9/+2.1",
+  "+2.1/+1.7",
+];
 let modularityChart;
 
 const getCssVar = (name) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+function createBarGradient(context, startColor, endColor) {
+  const { chart } = context;
+  const { chartArea } = chart;
+
+  if (!chartArea) return endColor;
+
+  const gradient = chart.ctx.createLinearGradient(
+    0,
+    chartArea.top,
+    0,
+    chartArea.bottom
+  );
+
+  gradient.addColorStop(0, startColor);
+  gradient.addColorStop(1, endColor);
+  return gradient;
+}
+
+const modularityDeltaPlugin = {
+  id: "modularityDeltaLabels",
+  afterDatasetsDraw(chart) {
+    const { ctx, chartArea, scales } = chart;
+    const scanMeta = chart.getDatasetMeta(0);
+    const m3dMeta = chart.getDatasetMeta(1);
+
+    if (!scanMeta?.data?.length || !m3dMeta?.data?.length) return;
+
+    ctx.save();
+    ctx.font = `700 10px ${getCssVar("--font-sans")}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    modularityDeltas.forEach((delta, index) => {
+      if (index === 0) return;
+
+      const scanBar = scanMeta.data[index];
+      const m3dBar = m3dMeta.data[index];
+      const x = (scanBar.x + m3dBar.x) / 2;
+      const yValue = Math.max(
+        modularitySeries.scanRefer[index],
+        modularitySeries.multi3DRefer[index]
+      );
+      const y = Math.max(chartArea.top + 12, scales.y.getPixelForValue(yValue) - 14);
+      const metrics = ctx.measureText(delta);
+      const width = metrics.width + 12;
+      const height = 18;
+      const radius = 6;
+      const left = x - width / 2;
+      const top = y - height / 2;
+
+      ctx.beginPath();
+      ctx.moveTo(left + radius, top);
+      ctx.lineTo(left + width - radius, top);
+      ctx.quadraticCurveTo(left + width, top, left + width, top + radius);
+      ctx.lineTo(left + width, top + height - radius);
+      ctx.quadraticCurveTo(left + width, top + height, left + width - radius, top + height);
+      ctx.lineTo(left + radius, top + height);
+      ctx.quadraticCurveTo(left, top + height, left, top + height - radius);
+      ctx.lineTo(left, top + radius);
+      ctx.quadraticCurveTo(left, top, left + radius, top);
+      ctx.closePath();
+      ctx.fillStyle = getCssVar("--chart-delta-bg");
+      ctx.fill();
+
+      ctx.fillStyle = getCssVar("--chart-delta-text");
+      ctx.fillText(delta, x, y + 0.5);
+    });
+
+    ctx.restore();
+  },
+};
 
 const buildModularityChartData = () => ({
   labels: modularityLabels,
@@ -34,16 +112,26 @@ const buildModularityChartData = () => ({
     {
       label: "ScanRefer Acc@0.25",
       data: modularitySeries.scanRefer,
-      backgroundColor: getCssVar("--teal"),
-      borderColor: getCssVar("--teal"),
+      backgroundColor: (context) =>
+        createBarGradient(
+          context,
+          getCssVar("--chart-scan-start"),
+          getCssVar("--chart-scan-end")
+        ),
+      borderColor: getCssVar("--chart-scan-end"),
       borderRadius: 6,
       borderSkipped: false,
     },
     {
       label: "Multi3DRefer F1@0.25",
       data: modularitySeries.multi3DRefer,
-      backgroundColor: getCssVar("--blue"),
-      borderColor: getCssVar("--blue"),
+      backgroundColor: (context) =>
+        createBarGradient(
+          context,
+          getCssVar("--chart-m3d-start"),
+          getCssVar("--chart-m3d-end")
+        ),
+      borderColor: getCssVar("--chart-m3d-end"),
       borderRadius: 6,
       borderSkipped: false,
     },
@@ -147,6 +235,7 @@ function initModularityChart() {
     type: "bar",
     data: buildModularityChartData(),
     options: buildModularityChartOptions(),
+    plugins: [modularityDeltaPlugin],
   });
 
   modularityCard?.classList.add("is-chart-ready");

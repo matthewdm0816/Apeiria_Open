@@ -120,7 +120,7 @@
 
       <section class="teaser-section section-band light" aria-labelledby="teaser-title">
         <div class="container">
-          <div class="section-kicker">Bridge</div>
+          <div class="section-kicker">Motivation</div>
           <h2 id="teaser-title">Interpretable programs meet flexible 3D MLLMs.</h2>
           <div class="teaser-viewer" data-teaser-viewer>
             <div class="teaser-controls" aria-label="Teaser panels">
@@ -172,20 +172,18 @@
           </div>
           <div class="prose">
             <p>
-              Current 3D spatial reasoning methods sit between two imperfect
-              poles: 3D MLLMs handle free-form, open-vocabulary language but hide
-              their spatial verification process, while neuro-symbolic 3D learners
-              expose compositional programs but remain tied to closed-set concepts
-              and dense step supervision.
+              Current 3D spatial reasoning methods face a trade-off: neuro-symbolic
+              3D learners provide interpretable compositional programs but remain
+              tied to closed-set vocabularies, while end-to-end 3D MLLMs can handle
+              free-form language yet often reason as opaque pattern matchers.
             </p>
             <p>
-              APEIRIA decouples concept learning from reasoning learning. It
-              distills verified symbolic execution traces into natural-language
-              chain-of-thought, teaching the model the syntax of spatial reasoning
-              rather than fixed concept modules. A three-stage curriculum aligns
-              object-centric 3D perception, injects plan-and-execute reasoning via
-              CoT-SFT, and extends those patterns to open-set concepts and complex
-              nested instructions through CoT-RL.
+              APEIRIA bridges these paradigms by distilling verified symbolic
+              execution traces into natural language chain-of-thought. A three-stage
+              curriculum first teaches the model to see in 3D through
+              object-centric grounding, then injects systematic program-style
+              reasoning via CoT-SFT, and finally extends the learned patterns to
+              open-set concepts and complex nested instructions through CoT-RL.
             </p>
           </div>
         </div>
@@ -361,7 +359,7 @@
             </div>
           </div>
           <figure class="trace-plot" aria-labelledby="trace-plot-title">
-            <figcaption id="trace-plot-title">Trace example from Figure 5</figcaption>
+            <figcaption id="trace-plot-title">Trace example</figcaption>
             <div class="trace-prompt">
               <span>Instruction</span>
               <strong>Find the vase left to the computer.</strong>
@@ -440,7 +438,6 @@
                   <span>Modularity Analysis</span>
                   <strong>Inference-time module replacement</strong>
                 </div>
-                <p>Scores use a truncated 56-62 axis for readability.</p>
               </div>
               <div class="module-chart-canvas">
                 <canvas data-modularity-chart aria-label="Grouped bar chart comparing self, external planning, external perception, oracle labels, and full modular enhancement on ScanRefer and Multi3DRefer."></canvas>
@@ -456,13 +453,11 @@
                 <tbody>
                   <tr><td>Self plan + perception</td><td>58.4</td><td>59.2</td></tr>
                   <tr><td>Claude 4.5 Opus plan</td><td>58.6</td><td>59.5</td></tr>
-                  <tr><td>Mask3D perception</td><td>58.5</td><td>58.3</td></tr>
                   <tr><td>SegDINO3D perception</td><td>60.4</td><td>60.6</td></tr>
                   <tr><td>Oracle labels</td><td>61.3</td><td>61.3</td></tr>
                   <tr><td>Full modular enhancement</td><td>60.5</td><td>60.9</td></tr>
                 </tbody>
               </table>
-              <p class="module-chart-note">Opus plan: +0.2/+0.3. SegDINO3D: +2.0/+1.4. Full enhancement: +2.1/+1.7.</p>
             </div>
           </div>
         </div>
