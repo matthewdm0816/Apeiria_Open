@@ -65,6 +65,11 @@
   --chart-scan-end: #087b75;
   --chart-m3d-start: #8eb2e7;
   --chart-m3d-end: #334f76;
+  --chart-oracle-start: rgba(237, 177, 97, 0.7);
+  --chart-oracle-end: rgba(184, 74, 45, 0.62);
+  --chart-oracle-line: rgba(184, 74, 45, 0.58);
+  --chart-oracle-fill: rgba(184, 74, 45, 0.08);
+  --chart-oracle-text: #8f3e25;
   --chart-delta-bg: rgba(255, 255, 255, 0.82);
   --chart-delta-text: #25403e;
   --peek-shadow: rgba(19, 32, 31, 0.18);
@@ -142,6 +147,11 @@ html[data-theme="dark"] {
   --chart-scan-end: #128a84;
   --chart-m3d-start: #a4c5f6;
   --chart-m3d-end: #4a6fa5;
+  --chart-oracle-start: rgba(255, 198, 121, 0.74);
+  --chart-oracle-end: rgba(255, 154, 126, 0.62);
+  --chart-oracle-line: rgba(255, 154, 126, 0.66);
+  --chart-oracle-fill: rgba(255, 154, 126, 0.1);
+  --chart-oracle-text: #ffc3b2;
   --chart-delta-bg: rgba(18, 29, 30, 0.86);
   --chart-delta-text: #d7ebe8;
   --peek-shadow: rgba(0, 0, 0, 0.4);
@@ -1217,7 +1227,6 @@ tr:last-child td {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-right: 86px;
   padding: 22px 24px 20px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1268,6 +1277,11 @@ tr:last-child td {
   color: var(--muted);
 }
 
+.module-chart-fallback .oracle-row td {
+  color: var(--chart-oracle-text);
+  border-top: 1px dashed var(--chart-oracle-line);
+}
+
 .module-card.is-chart-ready .module-chart-fallback {
   display: none;
 }
@@ -1279,18 +1293,24 @@ tr:last-child td {
   padding: 28px 0 36px;
 }
 
+.bib-visual {
+  position: relative;
+  min-height: 212px;
+  padding: 0 96px 52px 0;
+}
+
 .apeiria-side-peek {
-  --peek-rest: translate(22%, 14%) rotate(-21deg) scale(0.92);
-  --peek-active: translate(48%, -8%) rotate(-14deg) scale(1);
+  --peek-rest: translate(58%, 23%) rotate(34deg) scale(0.86);
+  --peek-active: translate(0%, -8%) rotate(24deg) scale(0.98);
   position: absolute;
-  right: -28px;
-  bottom: -18px;
+  right: -72px;
+  bottom: -78px;
   z-index: 1;
-  width: clamp(360px, 46vw, 540px);
-  opacity: 0.08;
+  width: clamp(320px, 35vw, 470px);
+  opacity: 0.04;
   pointer-events: none;
   transform: var(--peek-rest);
-  transform-origin: 34% 92%;
+  transform-origin: 58% 92%;
   filter: drop-shadow(0 18px 28px var(--peek-shadow));
   transition: transform 780ms cubic-bezier(0.18, 0.86, 0.18, 1), opacity 560ms ease;
   will-change: transform, opacity;
@@ -1305,9 +1325,9 @@ tr:last-child td {
 }
 
 .character-section.is-peek-visible .apeiria-side-peek,
-.module-visual:hover .apeiria-side-peek,
-.module-visual:focus-within .apeiria-side-peek {
-  opacity: 0.86;
+.bib-visual:hover .apeiria-side-peek,
+.bib-visual:focus-within .apeiria-side-peek {
+  opacity: 0.78;
   transform: var(--peek-active);
 }
 
@@ -1321,6 +1341,7 @@ tr:last-child td {
 .bib-card {
   position: relative;
   overflow: hidden;
+  z-index: 2;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--code-bg);
@@ -1499,12 +1520,11 @@ pre {
   }
 
   .module-visual {
-    min-height: 430px;
-    padding: 20px 0 110px;
+    min-height: auto;
+    padding: 20px 0;
   }
 
   .module-card {
-    margin-right: 72px;
     padding: 20px 16px 18px;
   }
 
@@ -1512,19 +1532,24 @@ pre {
     height: 310px;
   }
 
+  .bib-visual {
+    min-height: 430px;
+    padding: 0 0 118px;
+  }
+
   .apeiria-side-peek {
-    --peek-rest: translate(12%, 14%) rotate(-21deg) scale(0.94);
-    --peek-active: translate(30%, -6%) rotate(-14deg) scale(1);
-    right: -72px;
-    bottom: -8px;
-    width: clamp(360px, 100vw, 460px);
-    opacity: 0.16;
+    --peek-rest: translate(42%, 18%) rotate(33deg) scale(0.84);
+    --peek-active: translate(0%, -2%) rotate(23deg) scale(0.92);
+    right: 170px;
+    bottom: -96px;
+    width: clamp(300px, 88vw, 380px);
+    opacity: 0.08;
   }
 
   .character-section.is-peek-visible .apeiria-side-peek,
-  .module-visual:hover .apeiria-side-peek,
-  .module-visual:focus-within .apeiria-side-peek {
-    opacity: 0.78;
+  .bib-visual:hover .apeiria-side-peek,
+  .bib-visual:focus-within .apeiria-side-peek {
+    opacity: 0.72;
   }
 
   .footer-inner {

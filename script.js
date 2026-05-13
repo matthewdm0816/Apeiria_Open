@@ -17,24 +17,30 @@ const modularityLabels = [
   "Self",
   "Opus",
   "SegDINO",
-  "Oracle",
   "Full",
+  ["Oracle", "upper bound"],
 ];
+const modularityOracleIndex = modularityLabels.length - 1;
 const modularitySeries = {
-  scanRefer: [58.4, 58.6, 60.4, 61.3, 60.5],
-  multi3DRefer: [59.2, 59.5, 60.6, 61.3, 60.9],
+  scanRefer: [58.4, 58.6, 60.4, 60.5, 61.3],
+  multi3DRefer: [59.2, 59.5, 60.6, 60.9, 61.3],
 };
 const modularityDeltas = [
   "baseline",
   "+0.2/+0.3",
   "+2.0/+1.4",
-  "+2.9/+2.1",
   "+2.1/+1.7",
+  "Upper bound",
 ];
 let modularityChart;
 
 const getCssVar = (name) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+const getModularityLabel = (index) => {
+  const label = modularityLabels[index];
+  return Array.isArray(label) ? label.join(" ") : label;
+};
 
 function createBarGradient(context, startColor, endColor) {
   const { chart } = context;
@@ -54,6 +60,57 @@ function createBarGradient(context, startColor, endColor) {
   return gradient;
 }
 
+function createModularityBarGradient(context, startColor, endColor) {
+  const isOracle = context.dataIndex === modularityOracleIndex;
+  return createBarGradient(
+    context,
+    isOracle ? getCssVar("--chart-oracle-start") : startColor,
+    isOracle ? getCssVar("--chart-oracle-end") : endColor
+  );
+}
+
+const modularityOracleGuidePlugin = {
+  id: "modularityOracleGuide",
+  beforeDatasetsDraw(chart) {
+    const { ctx, chartArea, scales } = chart;
+
+    if (!chartArea || !scales?.x || !scales?.y) return;
+
+    const previousX = scales.x.getPixelForValue(modularityOracleIndex - 1);
+    const oracleX = scales.x.getPixelForValue(modularityOracleIndex);
+    const separatorX = (previousX + oracleX) / 2;
+    const oracleY = scales.y.getPixelForValue(
+      Math.max(
+        modularitySeries.scanRefer[modularityOracleIndex],
+        modularitySeries.multi3DRefer[modularityOracleIndex]
+      )
+    );
+
+    ctx.save();
+    ctx.fillStyle = getCssVar("--chart-oracle-fill");
+    ctx.fillRect(
+      separatorX,
+      chartArea.top,
+      chartArea.right - separatorX,
+      chartArea.bottom - chartArea.top
+    );
+
+    ctx.strokeStyle = getCssVar("--chart-oracle-line");
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(separatorX, chartArea.top);
+    ctx.lineTo(separatorX, chartArea.bottom);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(separatorX + 10, oracleY);
+    ctx.lineTo(chartArea.right, oracleY);
+    ctx.stroke();
+    ctx.restore();
+  },
+};
+
 const modularityDeltaPlugin = {
   id: "modularityDeltaLabels",
   afterDatasetsDraw(chart) {
@@ -71,6 +128,7 @@ const modularityDeltaPlugin = {
     modularityDeltas.forEach((delta, index) => {
       if (index === 0) return;
 
+      const isOracle = index === modularityOracleIndex;
       const scanBar = scanMeta.data[index];
       const m3dBar = m3dMeta.data[index];
       const x = (scanBar.x + m3dBar.x) / 2;
@@ -97,10 +155,21 @@ const modularityDeltaPlugin = {
       ctx.lineTo(left, top + radius);
       ctx.quadraticCurveTo(left, top, left + radius, top);
       ctx.closePath();
-      ctx.fillStyle = getCssVar("--chart-delta-bg");
+      ctx.fillStyle = isOracle
+        ? getCssVar("--chart-oracle-fill")
+        : getCssVar("--chart-delta-bg");
       ctx.fill();
+      if (isOracle) {
+        ctx.strokeStyle = getCssVar("--chart-oracle-line");
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
 
-      ctx.fillStyle = getCssVar("--chart-delta-text");
+      ctx.fillStyle = isOracle
+        ? getCssVar("--chart-oracle-text")
+        : getCssVar("--chart-delta-text");
       ctx.fillText(delta, x, y + 0.5);
     });
 
@@ -115,12 +184,16 @@ const buildModularityChartData = () => ({
       label: "ScanRefer Acc@0.25",
       data: modularitySeries.scanRefer,
       backgroundColor: (context) =>
-        createBarGradient(
+        createModularityBarGradient(
           context,
           getCssVar("--chart-scan-start"),
           getCssVar("--chart-scan-end")
         ),
-      borderColor: getCssVar("--chart-scan-end"),
+      borderColor: (context) =>
+        context.dataIndex === modularityOracleIndex
+          ? getCssVar("--chart-oracle-line")
+          : getCssVar("--chart-scan-end"),
+      borderWidth: (context) => (context.dataIndex === modularityOracleIndex ? 1 : 0),
       borderRadius: 6,
       borderSkipped: false,
     },
@@ -128,12 +201,16 @@ const buildModularityChartData = () => ({
       label: "Multi3DRefer F1@0.25",
       data: modularitySeries.multi3DRefer,
       backgroundColor: (context) =>
-        createBarGradient(
+        createModularityBarGradient(
           context,
           getCssVar("--chart-m3d-start"),
           getCssVar("--chart-m3d-end")
         ),
-      borderColor: getCssVar("--chart-m3d-end"),
+      borderColor: (context) =>
+        context.dataIndex === modularityOracleIndex
+          ? getCssVar("--chart-oracle-line")
+          : getCssVar("--chart-m3d-end"),
+      borderWidth: (context) => (context.dataIndex === modularityOracleIndex ? 1 : 0),
       borderRadius: 6,
       borderSkipped: false,
     },
@@ -155,7 +232,10 @@ const buildModularityChartOptions = () => ({
       },
       ticks: {
         autoSkip: false,
-        color: getCssVar("--module-value"),
+        color: (context) =>
+          context.index === modularityOracleIndex
+            ? getCssVar("--chart-oracle-text")
+            : getCssVar("--module-value"),
         maxRotation: 0,
         font: {
           family: getCssVar("--font-sans"),
@@ -207,8 +287,12 @@ const buildModularityChartOptions = () => ({
       bodyColor: getCssVar("--code-text"),
       displayColors: true,
       callbacks: {
-        title: (items) => items[0].label,
+        title: (items) => getModularityLabel(items[0].dataIndex),
         afterLabel: (item) => {
+          if (item.dataIndex === modularityOracleIndex) {
+            return "Role: oracle upper bound reference.";
+          }
+
           const baseline =
             item.datasetIndex === 0
               ? modularitySeries.scanRefer[0]
@@ -237,7 +321,7 @@ function initModularityChart() {
     type: "bar",
     data: buildModularityChartData(),
     options: buildModularityChartOptions(),
-    plugins: [modularityDeltaPlugin],
+    plugins: [modularityOracleGuidePlugin, modularityDeltaPlugin],
   });
 
   modularityCard?.classList.add("is-chart-ready");
