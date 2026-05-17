@@ -488,47 +488,6 @@ class ScanNetRawObject(metaclass=Singleton):
 
         logger.info(f"Loaded {self.num_classes} ScanNet raw object classes")
 
-# --- Synthetic Simple Dataset ---
-
-def get_spatial_relation(obj1_pos: np.ndarray, obj2_pos: np.ndarray, threshold: float = 2.0, add_none_relation: bool = False) -> List[SpatialRelation]:
-    """Determine spatial relations between two objects based on their positions"""
-    relations = []
-    
-    # Extract positions
-    x1, y1, z1 = obj1_pos[:3]
-    x2, y2, z2 = obj2_pos[:3]
-    
-    # Horizontal relations (x-axis)
-    if x1 < x2 - threshold:
-        relations.append(SpatialRelation.LEFT)
-    elif x1 > x2 + threshold:
-        relations.append(SpatialRelation.RIGHT)
-    
-    # Vertical relations (y-axis)
-    if y1 < y2 - threshold:
-        relations.append(SpatialRelation.BELOW)
-    elif y1 > y2 + threshold:
-        relations.append(SpatialRelation.ABOVE)
-    
-    # Depth relations (z-axis)
-    if z1 < z2 - threshold:
-        relations.append(SpatialRelation.IN_FRONT_OF)
-    elif z1 > z2 + threshold:
-        relations.append(SpatialRelation.BEHIND)
-    
-    # Distance relation
-    distance = np.sqrt((x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2)
-    if distance < threshold * 1.5:
-        relations.append(SpatialRelation.NEAR)
-    elif distance > threshold * 3:
-        relations.append(SpatialRelation.FAR)
-
-    if add_none_relation and len(relations) == 0:
-        relations.append(SpatialRelation.NONE)
-
-    return relations
-
-
 def format_multiple_predicates(predicates: List[str]):
     # use "and" for the last predicate, and ", " for the rest
     if len(predicates) == 1:

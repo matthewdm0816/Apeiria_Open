@@ -57,7 +57,7 @@ from muon import Muon
 
 from apeiria_mllm_config_schema import Config
 from apeiria_mllm import MultimodalLanguageModelDecoderOnly
-from apeiria_lm_utils import Synthetic3DDataset, Synthetic3DObjectInfoDataset, MergedDataset, Synthetic3DRelationalDataset
+from apeiria_lm_utils import MergedDataset
 from apeiria_lm_prog_to_thinking import (
     Real3DDataset, 
     Real3DObjectInfoDataset, 
@@ -100,9 +100,6 @@ def find_free_port():
 # ]
 
 DATASET_CLSMAP: Dict[str, Callable[..., Synthetic3DDatasetType]] = {
-    "synthetic3d": Synthetic3DDataset,
-    "synthetic3d_object_info": Synthetic3DObjectInfoDataset,
-    "synthetic3d_relational": Synthetic3DRelationalDataset,
     "sr3d": Real3DDataset,
     "sr3d_object_info": Real3DObjectInfoDataset,
     "sr3d_filter": Real3DFilterDataset,

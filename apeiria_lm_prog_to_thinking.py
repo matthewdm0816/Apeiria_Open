@@ -7,7 +7,6 @@ import os
 import logging
 import math
 from typing import Dict, List, Tuple, Set, Optional, Any, Union, Callable, Iterable
-from enum import Enum
 from collections import defaultdict
 from torch.utils.data import Dataset, DataLoader
 import torch
@@ -32,7 +31,6 @@ from scipy.optimize import linear_sum_assignment
 from eval_utils import score_captions
 
 from apeiria_lm_utils import (
-    Synthetic3DDataset, Synthetic3DRelationalDataset, Synthetic3DObjectInfoDataset, 
     ScanNetRawObject, box3d_iou_orthogonal, mutual_iou, mutual_iou_vectorized
 )
 # APEIRIA_OPEN_UNUSED: The final public release is 3D-feature-only and does not
@@ -65,22 +63,6 @@ def locked_file(filename, mode='a'):
     with lock:
         with open(filename, mode) as f:
             yield f
-
-# Spatial relation enumeration class
-class SpatialRelation(Enum):
-    LEFT = "left"
-    RIGHT = "right"
-    ABOVE = "above"
-    BELOW = "below"
-    BEHIND = "behind"
-    IN_FRONT = "in front of"
-    NEAR = "near"
-    FAR = "far from"
-    NEXT_TO = "next to"
-    BESIDE = "beside"
-    ON = "on"
-    UNDER = "under"
-    NONE = "no relation"
 
 # Define program grammar
 program_grammar = r"""
@@ -7421,7 +7403,6 @@ class Real3DGroundingWithCaptionCoTDataset(Real3DDataset):
 
     
 Synthetic3DDatasetType = Union[
-    Synthetic3DDataset, Synthetic3DObjectInfoDataset, Synthetic3DRelationalDataset, 
     Real3DDataset, Real3DObjectInfoDataset, Real3DFilterDataset, Real3DDatasetWithExternalTrace,
     Real3DPreferenceDataset, Real3DDatasetWithAttributesNew, Real3DDatasetWithAttributes,
 ]

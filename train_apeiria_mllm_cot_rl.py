@@ -44,7 +44,6 @@ set_start_method("spawn", force=True)
 # Import the multimodal model and dataset classes
 from dist_tools import all_gather_vlen, all_gather_vdim, model_to_device
 from apeiria_mllm import MultimodalLanguageModelDecoderOnly, find_free_port
-from apeiria_lm_utils import Synthetic3DDataset, Synthetic3DObjectInfoDataset, MergedDataset, Synthetic3DRelationalDataset
 from apeiria_lm_prog_to_thinking import Real3DDataset, Real3DObjectInfoDataset, Real3DFilterDataset
 from simple_filter_dataset_grpo import combined_reward, parse_response, calculate_position_similarity, calculate_size_similarity
 from qwen_helpers import apply_qwen_template, count_example_tokens, batch_count_tokens
@@ -57,14 +56,10 @@ logger.setLevel(logging.INFO)
 
 # define a typevar for dataset class
 Synthetic3DDatasetType = Union[
-    Synthetic3DDataset, Synthetic3DObjectInfoDataset, Synthetic3DRelationalDataset, 
     Real3DDataset, Real3DObjectInfoDataset, Real3DFilterDataset
 ]
 
 DATASET_CLSMAP: Dict[str, Callable[..., Synthetic3DDatasetType]] = {
-    "synthetic3d": Synthetic3DDataset,
-    "synthetic3d_object_info": Synthetic3DObjectInfoDataset,
-    "synthetic3d_relational": Synthetic3DRelationalDataset,
     "sr3d": Real3DDataset,
     "sr3d_object_info": Real3DObjectInfoDataset,
     "sr3d_filter": Real3DFilterDataset,

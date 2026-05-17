@@ -56,7 +56,7 @@ set_start_method("spawn", force=True)
 # Import the multimodal model and dataset classes
 from dist_tools import all_gather_vlen, all_gather_vdim, model_to_device
 from apeiria_mllm import MultimodalLanguageModelDecoderOnly, find_free_port, NEW_SGLANG
-from apeiria_lm_utils import Synthetic3DDataset, Synthetic3DObjectInfoDataset, MergedDataset, Synthetic3DRelationalDataset
+from apeiria_lm_utils import MergedDataset
 from apeiria_lm_prog_to_thinking import Real3DDataset, Real3DObjectInfoDataset, Real3DFilterDataset
 import simple_filter_dataset_grpo
 from simple_filter_dataset_grpo import combined_reward, parse_response, calculate_position_similarity, calculate_size_similarity, CombinedReward, pass_at_k

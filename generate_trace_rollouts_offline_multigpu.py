@@ -38,7 +38,6 @@ import re
 
 from apeiria_mllm_config_schema import Config
 from apeiria_mllm import MultimodalLanguageModelDecoderOnly
-from apeiria_lm_utils import Synthetic3DDataset, Synthetic3DObjectInfoDataset, MergedDataset, Synthetic3DRelationalDataset
 from apeiria_lm_prog_to_thinking import Real3DDataset, Real3DObjectInfoDataset, Real3DFilterDataset, parse_response
 from qwen_helpers import apply_qwen_template
 
@@ -54,9 +53,6 @@ shutdown_event = mp.Event()
 
 # Dataset class mapping
 DATASET_CLSMAP = {
-    "synthetic3d": Synthetic3DDataset,
-    "synthetic3d_object_info": Synthetic3DObjectInfoDataset,
-    "synthetic3d_relational": Synthetic3DRelationalDataset,
     "sr3d": Real3DDataset,
     "nr3d": Real3DDataset, 
     "nr3d-gemini2.5pro": Real3DDataset, 
