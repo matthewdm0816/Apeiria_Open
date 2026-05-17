@@ -46,6 +46,8 @@ class Config:
     discrete_location_decay_kernel: str = "gaussian"
     discrete_location_decay_kernel_size: float = 1.0
     # discrete_location_bin_range handled above
+    # APEIRIA_OPEN_UNUSED: Legacy 2D image/view feature fields. Kept only for
+    # backwards-compatible config parsing; Real3DDataset ignores them.
     image_encoder: Optional[str] = None
     image_feature_type: str = "global" # "patch", "global", "adaptive_12x12"
     n_views_in_m_views: str = "32_8"  # e.g., "32_8" means resampling 8 views from 32 views

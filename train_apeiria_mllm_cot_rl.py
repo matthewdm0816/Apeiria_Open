@@ -99,6 +99,8 @@ class MultimodalGRPOConfig:
     discrete_location_decay_kernel_size: float = 1.0
     discrete_location_bin_range: List[float] = field(default_factory=lambda: [0.0, 10.0])
 
+    # APEIRIA_OPEN_UNUSED: Legacy 2D image/view feature fields. Kept only for
+    # backwards-compatible config parsing; Real3DDataset ignores them.
     image_encoder: str = "" # no extra image encoder "ViT-gopt-16-SigLIP2-384|webli" # 1536d 
     n_views_in_m_views: str = "32_8"
     image_feature_type: str = "global" # global, patch, adaptive_12x12

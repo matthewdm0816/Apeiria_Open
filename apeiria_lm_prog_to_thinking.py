@@ -35,7 +35,15 @@ from apeiria_lm_utils import (
     Synthetic3DDataset, Synthetic3DRelationalDataset, Synthetic3DObjectInfoDataset, 
     ScanNetRawObject, box3d_iou_orthogonal, mutual_iou, mutual_iou_vectorized
 )
-from image_feature_manager import ImageFeatureManager
+# APEIRIA_OPEN_UNUSED: The final public release is 3D-feature-only and does not
+# load 2D view/image features. image_feature_manager.py is therefore removable
+# after the image_encoder path below is deleted.
+class ImageFeatureManager:
+    def __init__(self, *args, **kwargs):
+        raise RuntimeError(
+            "APEIRIA_OPEN_UNUSED: image feature loading is disabled in the "
+            "public 3D-feature-only release."
+        )
 
 from qwen_helpers import apply_qwen_template, apply_qwen_template_with_partial_response
 
@@ -1428,6 +1436,9 @@ class ScanNetMixin:
               logger.error(f"反向归一化时发生错误: {e}", exc_info=True)
               return None, None
 
+# APEIRIA_OPEN_UNUSED_START: 2D view selection and image-feature retrieval path.
+# The final public release uses object/proposal features only, so these methods
+# are unreachable after Real3DDataset forces image_encoder=None.
 class DefaultViewSelectionMixin:
     """
     handles default view selection for real 3D datasets
@@ -1473,6 +1484,7 @@ class DefaultViewSelectionMixin:
 
         return image_features
 
+# APEIRIA_OPEN_UNUSED_END
 
 def trim_proposal_features(proposal_features, trim_keys: Iterable[str]):
     # Trim masked objects, and input predicted bboxes correspondingly
@@ -1540,12 +1552,15 @@ class Real3DDataset(Dataset, Templates, ScanNetMixin, DefaultViewSelectionMixin)
         tokenizer: transformers.PreTrainedTokenizer = None,
         only_plans: bool = False,
         sft: bool = False,
+        # APEIRIA_OPEN_UNUSED_START: 2D image/view feature arguments. Kept in
+        # the signature for old config compatibility but ignored below.
         image_encoder: Optional[str] = None,
         image_feature_type: Optional[str] = None,
         use_shared_image_features: bool = True,
         max_image_cache_mb: Optional[int] = None,  # e.g., 10000 for 10GB limit
         prefetch_image_features: bool = True,  # Whether to prefetch
         n_views_in_m_views: str = "32_8",  # e.g., "32_8" means resampling 8 views from 32 views
+        # APEIRIA_OPEN_UNUSED_END
         add_bracket_in_object_detail: bool = False,
         **kwargs
     ):
@@ -1594,16 +1609,26 @@ class Real3DDataset(Dataset, Templates, ScanNetMixin, DefaultViewSelectionMixin)
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
+
+        # APEIRIA_OPEN_UNUSED: Final public APEIRIA is 3D-feature-only. Force
+        # the old 2D image/view path off even if a legacy config passes a
+        # non-empty image_encoder. This avoids requiring clip_features or
+        # resampled_views* files.
+        if image_encoder:
+            logger.warning(
+                "Ignoring image_encoder=%s because 2D image/view features are "
+                "disabled in the public release.",
+                image_encoder,
+            )
+        image_encoder = None
+        image_feature_type = None
         
         # Load annotations
         self.annotation_file = self._get_annotation_file(split)
         self.annotations = self._load_annotations()
 
-        self.num_views = int(n_views_in_m_views.split('_')[1]) # e.g., "32_8" -> 8 views
-        if image_encoder:
-            self.view_annotation = json.load(open(self._get_view_annotation_file(n_views_in_m_views), 'r')) # sample_id -> view annotations
-        else:
-            self.view_annotation = None
+        self.num_views = 0  # APEIRIA_OPEN_UNUSED: old 2D-view count.
+        self.view_annotation = None  # APEIRIA_OPEN_UNUSED: old 2D-view metadata.
         
         # Load scene data
         self.scene_data = self._load_scene_data()

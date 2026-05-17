@@ -1007,6 +1007,8 @@ def create_dataset(dataset_type, args, dataset_class=None, split="train", **kwar
         shuffle_traces=args.shuffle_traces,
         # sft=True,
         sft=kwargs.get("sft", True),
+        # APEIRIA_OPEN_UNUSED: Legacy 2D image/view feature args. Passed only
+        # for old config compatibility; Real3DDataset ignores them.
         image_encoder=args.image_encoder,
         image_feature_type=args.image_feature_type,
         n_views_in_m_views=args.n_views_in_m_views,
@@ -1402,7 +1404,7 @@ def main(rank: int, cfg: Config):
         dtype=torch.bfloat16,
         modality_dims=modality_dims,
         modality_order=modality_order,
-        image_embedding_dim=MultimodalLanguageModelDecoderOnly.image_encoder_to_embedding_dim_map[args.image_encoder] if args.image_encoder else None,
+        image_embedding_dim=None,  # APEIRIA_OPEN_UNUSED: no 2D image embeddings.
         coeff_grounding_loss=args.coeff_grounding_loss,
         **sglang_kwargs,
     )

@@ -54,8 +54,9 @@ discrete_location_decay_kernel: "gaussian"
 discrete_location_decay_kernel_size: 1 
 discrete_location_bin_range: null # Will be calculated based on room_sizeq
 
-# image_encoder: ""
-image_encoder: "ViT-gopt-16-SigLIP2-384|webli" # 1536d 
+# APEIRIA_OPEN_UNUSED: Legacy 2D image/view feature path. Final release uses
+# object/proposal features only; Real3DDataset ignores these fields.
+image_encoder: ""
 n_views_in_m_views: "32_8"
 image_feature_type: global # global, patch, adaptive_12x12
 
@@ -194,4 +195,3 @@ resume_from_checkpoint_epoch: False # start over lr schedule
 
 # --- Other optimization parameters ---
 compile_model: false
-

@@ -1372,6 +1372,8 @@ def create_dataset(dataset_type, args, split="val"):
         load_from_cache=False,
         tokenizer=args.tokenizer,
         only_plans=args.use_nr3d_plan_from_program, # use NR3D plan from its program written by LLM
+        # APEIRIA_OPEN_UNUSED: Legacy 2D image/view feature args. Passed only
+        # for old config compatibility; Real3DDataset ignores them.
         image_encoder=args.image_encoder,
         image_feature_type=args.image_feature_type,
         n_views_in_m_views=args.n_views_in_m_views,

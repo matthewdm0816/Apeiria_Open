@@ -74,7 +74,7 @@ except ImportError:
 from peft import PeftModel
 import accelerate
 
-from apeiria_lm_new import FourierFeatureMapping
+from fourier import FourierFeatureMapping
 
 NEW_SGLANG = SGLANG_VERSION is not None and SGLANG_VERSION >= SGLANG_REQUIRED_VERSION # enable radix attention cache and cuda graph for LoRA
 
@@ -922,6 +922,9 @@ class ObjectDiscreteLocationEmbeddingSeparate(nn.Module):
         return output_embeddings
 
 class MultimodalLanguageModelDecoderOnly(nn.Module):
+    # APEIRIA_OPEN_UNUSED: Legacy 2D image encoder metadata. The final public
+    # model receives object/proposal features only, so image_embedding_dim is
+    # always None in the public training/inference entrypoints.
     image_encoder_to_embedding_dim_map = {
         "ViT-H-14-378-quickgelu|dfn5b": 1024, # dummy
         "ViT-gopt-16-SigLIP2-384|webli": 1536,
@@ -945,9 +948,9 @@ class MultimodalLanguageModelDecoderOnly(nn.Module):
         modality_dims: Optional[Dict[str, int]] = None,
         modality_order: str = "2d|3d|id|location",
         image_embedding_dim: Optional[int] = None,
-        image_encoder_model_id: Optional[str] = "ViT-H-14-378-quickgelu",
-        image_encoder_pretrained: Optional[str] = "dfn5b",
-        image_encoder_trainable: bool = False,
+        image_encoder_model_id: Optional[str] = "ViT-H-14-378-quickgelu",  # APEIRIA_OPEN_UNUSED
+        image_encoder_pretrained: Optional[str] = "dfn5b",  # APEIRIA_OPEN_UNUSED
+        image_encoder_trainable: bool = False,  # APEIRIA_OPEN_UNUSED
         use_sglang: bool = False,
         sglang_model_path: Optional[str] = None,
         sglang_lora_paths: Optional[List[str]] = None,

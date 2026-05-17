@@ -55,6 +55,8 @@ use_2d_proposal_feature: true
 normalize_proposal_feature: true
 token_level_pg_loss: true
 
+# APEIRIA_OPEN_UNUSED: Legacy 2D image/view feature path. Final release uses
+# object/proposal features only; Real3DDataset ignores these fields.
 # image_encoder: "ViT-gopt-16-SigLIP2-384|webli" # 1536d 
 image_encoder: "" # no extra image encoder
 n_views_in_m_views: "32_8"
@@ -181,4 +183,3 @@ transformers_verbosity_other: warning
 wandb_project: apeiria-3d-grpo
 # wandb_run_name: mllm-grpo-20250409-000000
 sglang_log_level: info
-

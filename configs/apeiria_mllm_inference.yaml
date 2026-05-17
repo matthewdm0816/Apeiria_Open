@@ -63,5 +63,7 @@ load_from_cache: false
 use_nr3d_plan_from_program: false
 add_thinking_trace: false # must be true if use_nr3d_plan_from_program is true
 add_thinking_trace_prompt: true
+# APEIRIA_OPEN_UNUSED: Legacy 2D image/view feature path. Final release uses
+# object/proposal features only; Real3DDataset ignores this field.
 image_encoder: ""
 proposal_type: uni3d-mask3d-box
