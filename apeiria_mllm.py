@@ -3,10 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.ops import sigmoid_focal_loss
 import torch.distributed as dist
-import torch.multiprocessing as mp
 import signal
-import requests
-import subprocess
 from accelerate.utils import clear_environment, patch_environment
 from transformers import AutoModel, AutoTokenizer, GenerationMixin
 from enum import Enum, auto
@@ -25,8 +22,6 @@ import numpy as np
 import re
 import pretty_errors
 from icecream import ic
-import atexit
-import traceback
 import socket
 from contextlib import closing
 import sys
@@ -171,401 +166,6 @@ def find_free_port():
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         return s.getsockname()[1]  # 返回分配的端口号
 
-
-def sglang_worker_process(
-    gpu_id: int,
-    model_path: str,
-    lora_paths: Optional[List[str]],
-    input_queue: mp.Queue,
-    output_queue: mp.Queue,
-    worker_ready_event: mp.Event
-):
-    """
-    Worker process that runs the SGLang engine on a specific GPU.
-    
-    Args:
-        gpu_id: GPU ID to use
-        model_path: Path to the model
-        lora_paths: Optional list of LoRA paths
-        input_queue: Queue for receiving requests
-        output_queue: Queue for sending responses
-        worker_ready_event: Event to signal when worker is ready
-    """
-    try:
-        # Set CUDA device
-        os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
-        
-        # Import here to avoid importing in the main process
-        import sglang as sgl
-        import torch
-
-        print(f"Starting SGLang worker process on GPU {gpu_id}")
-        print(f"CUDA_VISIBLE_DEVICES: {os.environ['CUDA_VISIBLE_DEVICES']}")
-        print(f"{torch.cuda.is_available()=}")
-        
-        # Initialize SGLang engine
-        engine = sgl.Engine(
-            model_path=model_path,
-            disable_radix_cache=True if not NEW_SGLANG else False,
-            skip_tokenizer_init=True,
-            disable_cuda_graph=True if not NEW_SGLANG else False,
-            lora_paths=lora_paths if lora_paths else None,
-            log_level="debug",
-            base_gpu_id=0,
-            # base_gpu_id=int(gpu_id),
-            port=find_free_port(),
-        )
-
-        print(f"Initialized SGLang engine with model {model_path}")
-        
-        # Signal that worker is ready
-        worker_ready_event.set()
-        
-        # Process requests
-        while True:
-            request = input_queue.get()
-            
-            # Check if it's a stop command
-            if request.get("command") == "stop":
-                break
-                
-            # Otherwise it's a generate command
-            elif request.get("command") == "generate":
-                try:
-                    # Extract parameters
-                    input_embeds = request.get("input_embeds")
-                    input_ids = request.get("input_ids")
-                    sampling_params = request.get("sampling_params", {})
-                    lora_path = request.get("lora_path")
-                    
-                    # Generate
-                    # NOTE: the use of input_embeds need to edit `SGLang` code
-                    #   sglang/srt/entrypoints/engine.py 
-                    #   Engine.generate
-                    #   add input_embeds param and relay to ServerArgs
-                    #   sglang/srt/managers/io_struct.py 
-                    #   GenerateReqInput.normalize_batch_and_arguments
-                    #   add input_embeds is_single setting code
-                    #   GenerateReqInput.__getitem__
-                    #   add code to handle input_embeds[i]
-                    if input_embeds is not None:
-                        outputs = engine.generate(
-                            input_embeds=input_embeds,
-                            sampling_params=sampling_params,
-                            lora_path=lora_path
-                        )
-                    elif input_ids is not None:
-                        outputs = engine.generate(
-                            input_ids=input_ids,
-                            sampling_params=sampling_params,
-                            lora_path=lora_path
-                        )
-                    else:
-                        raise ValueError("Either input_embeds or input_ids must be provided")
-                    
-                    # Send response
-                    output_queue.put({"status": "success", "outputs": outputs})
-                except Exception as e:
-                    output_queue.put({"status": "error", "error": str(e)})
-            
-            # Unknown command
-            else:
-                output_queue.put({"status": "error", "error": f"Unknown command: {request.get('command')}"})
-        
-        # Shutdown engine
-        engine.shutdown()
-        
-    except Exception as e:
-        # Send error message
-        print(f"Error in SGLang worker process: {e}")
-        traceback.print_exc()
-        output_queue.put({"status": "error", "error": str(e)})
-        
-    finally:
-        # Make sure to exit the process
-        os._exit(0)
-
-
-class SGLangSubprocessManager:
-    """
-    Manager for SGLang subprocess.
-    """
-    def __init__(
-        self, 
-        model_path: str,
-        gpu_id: int = 0,
-        lora_paths: Optional[List[str]] = None,
-        timeout: int = 600000,
-    ):
-        self.model_path = model_path
-        self.gpu_id = gpu_id
-        self.lora_paths = lora_paths
-        self.timeout = timeout
-        
-        # Create queues and event
-        self.input_queue = mp.Queue()
-        self.output_queue = mp.Queue()
-        self.worker_ready_event = mp.Event()
-        
-        # Start worker process
-        self.process = None
-        self._start_worker()
-
-        atexit.register(self.stop)
-    
-    def _start_worker(self):
-        """Start the worker process"""
-        # Stop existing process if it exists
-        if self.process is not None and self.process.is_alive():
-            self.stop()
-        
-        # Create and start new process
-        self.worker_ready_event.clear()
-        self.process = mp.Process(
-            target=sglang_worker_process,
-            args=(self.gpu_id, self.model_path, self.lora_paths, 
-                  self.input_queue, self.output_queue, self.worker_ready_event)
-        )
-        # self.process.daemon = True
-        self.process.start()
-        
-        # Wait for worker to be ready
-        if not self.worker_ready_event.wait(self.timeout):
-            self.process.terminate()
-            raise TimeoutError(f"SGLang worker process did not start within {self.timeout} seconds")
-    
-    def generate(
-        self, 
-        input_embeds: Optional[List[List[List[float]]]] = None,
-        input_ids: Optional[List[List[int]]] = None,
-        sampling_params: Dict[str, Any] = None,
-        lora_path: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
-        """
-        Send generation request to worker process.
-        """
-        self.input_queue.put({
-            "command": "generate",
-            "input_embeds": input_embeds,
-            "input_ids": input_ids,
-            "sampling_params": sampling_params,
-            "lora_path": lora_path
-        })
-        
-        # Wait for response
-        response = self.output_queue.get(timeout=self.timeout)
-        return response
-    
-    def stop(self):
-        """
-        Stop the worker process.
-        """
-        try:
-            if self.process is not None and self.process.is_alive():
-                self.input_queue.put({"command": "stop"})
-                # Give the process some time to clean up
-                time.sleep(1)
-                
-                # Make sure the process is terminated
-                if self.process.is_alive():
-                    self.process.terminate()
-                    self.process.join(timeout=5)
-                    
-                    # If still alive, kill it
-                    if self.process.is_alive():
-                        os.kill(self.process.pid, signal.SIGKILL)
-        except Exception as e:
-            print(f"Error stopping SGLang subprocess: {e}")
-
-class SGLangServerManager:
-    """
-    Manager for SGLang server.
-    """
-    def __init__(
-        self, 
-        model_path: str,
-        gpu_id: int = 0,
-        lora_paths: Optional[List[str]] = None,
-        host: str = "0.0.0.0",
-        port: Optional[int] = None,
-        timeout: int = 600,
-        log_level: int = logging.INFO,
-        disable_cuda_graph: bool = True,
-        disable_radix_cache: bool = True,
-        skip_tokenizer_init: bool = True,
-    ):
-        self.model_path = model_path
-        self.gpu_id = gpu_id
-        self.lora_paths = lora_paths
-        self.host = host
-        self.port = port or self._find_free_port()
-        self.timeout = timeout
-        self.log_level = log_level
-        self.disable_cuda_graph = disable_cuda_graph
-        self.disable_radix_cache = disable_radix_cache
-        self.skip_tokenizer_init = skip_tokenizer_init
-        
-        # 获取日志记录器
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(log_level)
-
-        from sglang.utils import launch_server_cmd, wait_for_server, terminate_process
-        self.launch_server_cmd = launch_server_cmd
-        self.wait_for_server = wait_for_server
-        self.terminate_process = terminate_process
-        
-        # 启动服务器进程
-        self.process = None
-        self._start_server()
-        
-    def _find_free_port(self):
-        # """Find a free port to use for the server."""
-        # with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        #     s.bind(('', 0))
-        #     return s.getsockname()[1]
-        return find_free_port()
-    
-    def _build_server_command(self):
-        """Build the command to launch the SGLang server."""
-        cmd = [
-            "python", "-m", "sglang.launch_server",
-            "--model-path", self.model_path,
-            "--host", self.host,
-            "--port", str(self.port),
-            "--log-level", "debug",
-            "--mem-fraction-static", "0.5",
-            # "--dp-size",
-            "--base-gpu-id", str(self.gpu_id),
-        ]
-        
-        if self.disable_cuda_graph:
-            cmd.extend(["--disable-cuda-graph"])
-
-        if self.disable_radix_cache:
-            cmd.extend(["--disable-radix-cache"])
-
-        if self.skip_tokenizer_init:
-            cmd.extend(["--skip-tokenizer-init"])
-            
-        if self.lora_paths:
-            lora_paths_str = ",".join(self.lora_paths)
-            cmd.extend(["--lora-paths", lora_paths_str])
-            
-        return cmd
-    
-    def _start_server(self):
-        """Start the SGLang server."""
-        # 停止现有进程（如果存在）
-        if self.process is not None:
-            self.stop()
-        
-        # 构建启动命令
-        cmd = self._build_server_command()
-        cmd = ' '.join(cmd)
-        self.logger.info(f"Starting SGLang server with command: {cmd}")
-
-        # cmd = f"CUDA_VISIBLE_DEVICES={self.gpu_id} {cmd}"
-        
-        # 使用官方工具启动服务器
-        self.process, self.server_port = self.launch_server_cmd(cmd)
-        
-        # 等待服务器启动
-        server_url = f"http://{self.host}:{self.server_port}"
-        self.logger.info(f"Waiting for SGLang server to start on {server_url}")
-        self.wait_for_server(server_url)
-        self.logger.info(f"SGLang server is ready on {server_url}")
-        
-    def _wait_for_server(self):
-        """Wait for the server to be ready."""
-        self.logger.info(f"Waiting for SGLang server to start on http://{self.host}:{self.port}")
-        start_time = time.time()
-        
-        while time.time() - start_time < self.timeout:
-            try:
-                # 尝试连接服务器
-                response = requests.get(f"http://{self.host}:{self.port}/health", timeout=1)
-                if response.status_code == 200:
-                    self.logger.info(f"SGLang server is ready on http://{self.host}:{self.port}")
-                    return
-            except requests.exceptions.RequestException:
-                # 读取并记录服务器输出
-                if self.process.stdout:
-                    line = self.process.stdout.readline()
-                    if line:
-                        self.logger.info(f"Server output: {line.strip()}")
-                
-                # 检查进程是否仍在运行
-                if self.process.poll() is not None:
-                    raise RuntimeError(f"SGLang server process exited with code {self.process.returncode}")
-                
-                time.sleep(1)
-        
-        # 超时后终止进程
-        self.stop()
-        raise TimeoutError(f"SGLang server did not start within {self.timeout} seconds")
-    
-    def generate(
-        self, 
-        input_embeds: Optional[List[List[List[float]]]] = None,
-        input_ids: Optional[List[List[int]]] = None,
-        sampling_params: Dict[str, Any] = None,
-    ) -> Dict[str, Any]:
-        """
-        Send generation request to the server.
-        """
-        url = f"http://{self.host}:{self.server_port}/generate"
-        
-        # 准备请求数据
-        data = {}
-        if input_embeds is not None:
-            data["input_embeds"] = input_embeds
-        elif input_ids is not None:
-            data["input_ids"] = input_ids
-        
-        if sampling_params:
-            data["sampling_params"] = sampling_params
-        
-        # 发送请求
-        self.logger.info(f"Sending generation request to SGLang server")
-        response = requests.post(url, json=data, timeout=self.timeout)
-        
-        # 检查响应状态
-        if response.status_code != 200:
-            self.logger.error(f"Error from SGLang server: {response.text}")
-            raise RuntimeError(f"SGLang server returned status code {response.status_code}: {response.text}")
-        
-        # 解析响应
-        result = response.json()
-        self.logger.info(f"Received response from SGLang server")
-        
-        return result
-    
-    def reload_lora_paths(self, lora_paths: Optional[List[str]]=None):
-        """
-        Reload the server with new LoRA paths.
-        """
-        if lora_paths:
-            lora_paths_str = ",".join(lora_paths)
-            self.logger.info(f"Reloading SGLang server with new LoRA paths: {lora_paths_str}")
-            self.lora_paths = lora_paths
-        
-        # 重启服务器
-        self.logger.info(f"Reloading SGLang server with new LoRA paths: {lora_paths}")
-        self._start_server()
-    
-    def stop(self):
-        """
-        Stop the server.
-        """
-        if self.process is not None:
-            self.logger.info("Stopping SGLang server")
-            self.terminate_process(self.process)
-            self.process = None
-            self.server_port = None
-    
-    def __del__(self):
-        """Clean up resources when the object is deleted."""
-        self.stop()
 
 class ObjectEmbeddingSimple(nn.Module):
     def __init__(self, object_feature_dim: int, decoder_hidden_size: int, dropout: float = 0.1, use_layer_norm: bool = True):
@@ -954,7 +554,6 @@ class MultimodalLanguageModelDecoderOnly(nn.Module):
         use_sglang: bool = False,
         sglang_model_path: Optional[str] = None,
         sglang_lora_paths: Optional[List[str]] = None,
-        sglang_host: str = "0.0.0.0",  # SGLang服务器主机
         sglang_port: Optional[int] = None,  # SGLang服务器端口
         sglang_log_level: str = "info",
         coeff_grounding_loss: float = 0.3,
@@ -988,20 +587,16 @@ class MultimodalLanguageModelDecoderOnly(nn.Module):
         self.keep_pids = []
         self.sglang_model_path = sglang_model_path or getattr(language_model, "name_or_path", None) #?
         self.sglang_lora_paths = sglang_lora_paths
-        self.sglang_subprocess = None
         self.sglang_gpu_id = dist.get_rank() if dist.is_initialized() else 0 # int(os.environ.get("CUDA_VISIBLE_DEVICES", "0").split(",")[0])
         # logger.info(f"Distributed initialized: {dist.is_initialized()}")
         # if dist.is_initialized():
         #     logger.info(f"Using SGLang GPU ID: {self.sglang_gpu_id} (rank {dist.get_rank()})")
         # else:
         #     logger.info(f"Using SGLang GPU ID: {self.sglang_gpu_id}, CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES', '<not set>')}")
-        self.sglang_host = sglang_host
         self.sglang_port = sglang_port
         self.sglang_log_level = sglang_log_level
 
         self.sglang_engine = None
-        self.sglang_subprocess = None
-        self.sglang_server = None
         
         # Object to text projection
         if object_embedding_type == "simple":
@@ -1052,8 +647,6 @@ class MultimodalLanguageModelDecoderOnly(nn.Module):
         # Initialize SGLang if needed
         if self.use_sglang:
             self._init_sglang_engine(delete_model_from_cpu=delete_model_from_cpu)
-            # self._init_sglang_subprocess()
-            # self._init_sglang_server()
             
         # turn all parameters to given dtype (except for the language model), required for FSDP
         # for name, param in self.named_parameters():
@@ -1069,39 +662,11 @@ class MultimodalLanguageModelDecoderOnly(nn.Module):
         self.shutdown_sglang()
 
     def shutdown_sglang(self):
-        """Shutdown SGLang engine and server"""
+        """Shutdown SGLang engine."""
         if self.sglang_engine is not None:
             # self.sglang_engine.shutdown(skip_pids=self.keep_pids)
             kill_process_tree(os.getpid(), include_parent=False, skip_pids=self.keep_pids)
             self.sglang_engine = None
-        
-        if self.sglang_server is not None:
-            self.sglang_server.stop()
-            self.sglang_server = None
-        
-        if self.sglang_subprocess is not None:
-            self.sglang_subprocess.stop()
-            self.sglang_subprocess = None
-    
-    def _init_sglang_server(self):
-        """初始化或重新初始化SGLang服务器"""
-        # 停止现有服务器（如果存在）
-        if self.sglang_server is not None:
-            self.sglang_server.stop()
-        
-        # 初始化新服务器
-        logger.info(f"Initializing SGLang server with model {self.sglang_model_path} on GPU {self.sglang_gpu_id}")
-        self.sglang_server = SGLangServerManager(
-            model_path=self.sglang_model_path,
-            gpu_id=self.sglang_gpu_id,
-            lora_paths=self.sglang_lora_paths,
-            host=self.sglang_host,
-            port=self.sglang_port,
-        )
-        
-        logger.info(f"Initialized SGLang server with model {self.sglang_model_path} on GPU {self.sglang_gpu_id}")
-        if self.sglang_lora_paths:
-            logger.info(f"Using LoRA paths: {self.sglang_lora_paths}")
 
     def _init_sglang_engine(self, load_non_lm_parameters: bool = True, delete_model_from_cpu: bool = False):
         """
@@ -1245,25 +810,6 @@ class MultimodalLanguageModelDecoderOnly(nn.Module):
         self.sglang_engine.load_lora_adapter(lora_path=self.sglang_lora_paths[0], lora_name=self.sglang_lora_paths[0])
 
         logger.info(f"Reloaded LoRA weights into SGLang engine from {self.sglang_lora_paths[0]}")
-
-
-    def _init_sglang_subprocess(self):
-        """Initialize or reinitialize the SGLang subprocess"""
-        # Stop existing subprocess if it exists
-        if self.sglang_subprocess is not None:
-            self.sglang_subprocess.stop()
-        
-        # Initialize new subprocess
-        self.sglang_subprocess = SGLangSubprocessManager(
-            model_path=self.sglang_model_path,
-            gpu_id=self.sglang_gpu_id,
-            lora_paths=self.sglang_lora_paths
-        )
-        
-        logger.info(f"Initialized SGLang subprocess with model {self.sglang_model_path} on GPU {self.sglang_gpu_id}")
-        if self.sglang_lora_paths:
-            logger.info(f"Using LoRA paths: {self.sglang_lora_paths}")
-
     def get_token_ranges_for_objects(
         self, 
         input_ids: torch.Tensor, 
@@ -2109,9 +1655,6 @@ class MultimodalLanguageModelDecoderOnly(nn.Module):
 
         if self.use_sglang and self.sglang_engine is not None:
             # logger.info("Starting SGLang generation")
-
-        # if self.use_sglang and self.sglang_subprocess is not None:
-        # if self.use_sglang and self.sglang_server is not None:
             # Use SGLang for generation
             sampling_params = {
                 "temperature": temperature if do_sample else 0.0,
