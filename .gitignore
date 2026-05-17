@@ -35,5 +35,9 @@ multirun/
 *.npy
 *.npz
 
+# Local legacy files kept for reference but removed from public git history
+apeiria_lm_new.py
+image_feature_manager.py
+
 # System files
 .DS_Store
