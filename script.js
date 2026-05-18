@@ -8,6 +8,9 @@ const themeToggleText = document.querySelector("[data-theme-toggle-text]");
 const themeMeta = document.querySelector('meta[name="theme-color"]');
 const projectsMenu = document.querySelector("[data-projects-menu]");
 const projectsMenuTrigger = document.querySelector("[data-projects-menu-trigger]");
+const footnoteLinks = Array.from(
+  document.querySelectorAll(".footnote-ref[href^='#'], .footnote-backref[href^='#']")
+);
 const modularityCard = document.querySelector("[data-modularity-card]");
 const modularityChartCanvas = document.querySelector("[data-modularity-chart]");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -537,6 +540,28 @@ teaserViewers.forEach((viewer) => {
 });
 
 initModularityChart();
+
+footnoteLinks.forEach((link) => {
+  link.addEventListener("click", (event) => {
+    const targetId = link.getAttribute("href");
+    const target = targetId ? document.querySelector(targetId) : null;
+
+    if (!target) return;
+
+    event.preventDefault();
+    target.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+      block: "center",
+      inline: "nearest",
+    });
+
+    if (window.history?.pushState) {
+      window.history.pushState(null, "", targetId);
+    }
+
+    target.focus?.({ preventScroll: true });
+  });
+});
 
 copyButton?.addEventListener("click", async () => {
   const target = document.querySelector(copyButton.dataset.copy);
