@@ -1,8 +1,8 @@
 # <img src="icon2.png" style="height: 1.2em; width: auto; vertical-align: text-bottom;" alt="APEIRIA"> APEIRIA: Distilling Neuro-Symbolic Programs into 3D Multi-modal LLMs
 
-[![Project Page](https://img.shields.io/badge/Project-Page-2f6f73)](https://matthewdm0816.github.io/Apeiria_Open/)
-[![Paper](https://img.shields.io/badge/Paper-PDF-b31b1b)](https://matthewdm0816.github.io/Apeiria_Open/assets/paper.pdf)
-[![Code](https://img.shields.io/badge/Code-GitHub-181717)](https://github.com/matthewdm0816/Apeiria_Open)
+[![Project Page](https://img.shields.io/badge/Project-Page-2f6f73)](./)
+[![Paper](https://img.shields.io/badge/Paper-PDF-b31b1b)](assets/paper.pdf)
+[![Code](https://img.shields.io/badge/Code-GitHub-181717)](./)
 [![Model](https://img.shields.io/badge/Model-HuggingFace-ffcc4d)](https://huggingface.co/kmichiru/OpenApeiria)
 
 
