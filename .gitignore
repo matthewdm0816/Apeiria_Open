@@ -45,3 +45,7 @@ AGENT.md
 
 # Local data symlinks – never commit
 data/
+
+# Agent-related files
+AGENT.md
+kimi-*.md

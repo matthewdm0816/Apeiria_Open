@@ -108,7 +108,8 @@ Also, link several task annotation paths from `../SVC` to `data/`:
 
 ```bash
 ln -s ../SVC/multi3drefer data/multi3drefer
-ln -s ../SVC/mmscan-obj-desc data/mmscan-obj-desc
+mkdir -p data/mmscan-obj-desc
+ln -s ../SVC/scannet_obj_infos data/mmscan-obj-desc/scannet_obj_infos
 ln -s ../SVC/msqa data/msqa
 ln -s ../SVC/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4 data/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4
 ```
