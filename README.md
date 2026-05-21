@@ -168,12 +168,11 @@ Before running, check the paths at the top of `batch_generate_scene_json.py`, es
 Perception Alignment and CoT-SFT (Stage 1 and 2) is launched through Hydra. The default config is `configs/apeiria_mllm.yaml`.
 
 ```bash
-bash train_mllm.sh \
-  model_name=<QWEN3_VL_8B_MODEL> \
-  resume_from_checkpoint=null \
-  output_dir=outputs/sft \
-  dataset_type='[scanrefer_nocot,nr3d_nocot,multi3drefer_nocot,sr3d_nocot]' \
-  no_save=false
+./train_mllm.sh weight_decay=1e-3 optimizer=adamw \
+  load_from_cache=false gradient_accumulation_steps=1 \
+  object_embedding_type="discrete_location_separate" \
+  eval_batch_size=32 batch_size=4 warmup_ratio=0.01 \
+  no_save=false eval_use_sglang=false
 ```
 
 Replace arguments with your desired settings such as model/datasets/batch_size/learning schedule.
@@ -183,12 +182,7 @@ Replace arguments with your desired settings such as model/datasets/batch_size/l
 The CoT-RL stage (Stage 3) uses asynchronous generation workers and use SGLang for faster rollout generation. The default config is `configs/multimodal_grpo.yaml`.
 
 ```bash
-bash train_grpo_mllm.sh \
-  model_name=<QWEN3_VL_8B_MODEL> \
-  load_checkpoint=<SFT_CHECKPOINT_DIR> \
-  dataset_type=scanrefer \
-  num_inference_gpus=4 \
-  num_training_gpus=4 \
+./train_grpo_mllm.sh learning_rate=5e-6 optimizer_type=muon
 ```
 
 Replace arguments with your desired settings such as model/datasets/batch_size/learning schedule.
