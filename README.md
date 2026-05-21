@@ -203,6 +203,22 @@ python generate_trace_rollouts_offline_multigpu.py \
 
 Supported dataset names are defined in `DATASET_CLSMAP` inside `train_apeiria_mllm.py` and the rollout script.
 
+#### Modular Enhancement
+
+In APEIRIA, `scene()` execution in CoT can be replaced in-place by better perception modules. To do this, first generate SegDINO3D-based object info:
+
+```bash
+# TODO
+```
+
+Then, run enhanced inference:
+
+```bash
+python generate_trace_rollouts_offline_multigpu.py \
+  # TODO
+```
+
+
 ## Release TODO
 
 - [x] Upload the final public checkpoints and keep the Hugging Face model card synchronized with the training and inference configs.
