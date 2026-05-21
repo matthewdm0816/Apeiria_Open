@@ -104,10 +104,9 @@ ln -s <SCANNET_ROOT> data/scannet
 ln -s <SVC_ROOT> ../SVC
 ```
 
-Also, link several task annotation and metadata paths from `../SVC` to `data/`:
+Also, link several task annotation paths from `../SVC` to `data/`:
 
 ```bash
-ln -s ../SVC/meta_data data/meta_data
 ln -s ../SVC/multi3drefer data/multi3drefer
 ln -s ../SVC/mmscan-obj-desc data/mmscan-obj-desc
 ln -s ../SVC/msqa data/msqa
