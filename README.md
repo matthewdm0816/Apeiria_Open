@@ -21,28 +21,7 @@ This work is accepted by ICML 2026.
 7. [Citation](#citation)
 8. [License](#license)
 
-## Repository Contents
 
-The repository is organized around the core APEIRIA training, inference, reward, and preprocessing components.
-
-| Path | Purpose |
-| --- | --- |
-| `apeiria_mllm.py` | Main 3D MLLM wrapper, object-feature projection, generation, and SGLang integration. |
-| `apeiria_mllm_config_schema.py` | Hydra config schema for SFT and inference. |
-| `apeiria_lm_prog_to_thinking.py` | Real 3D dataset construction, program-to-CoT conversion, task formatting, and evaluation parsing. |
-| `apeiria_lm_utils.py`, `apeiria_parser.py` | Synthetic data helpers, DSL parsing, and program utilities. |
-| `train_apeiria_mllm.py` | SFT training entry point. |
-| `train_apeiria_mllm_cot_rl_async.py` | Async GRPO/RL training entry point with SGLang generation workers. |
-| `train_apeiria_mllm_cot_rl.py` | Shared RL utilities used by the async trainer. |
-| `generate_trace_rollouts_offline_multigpu.py` | Multi-GPU inference and rollout generation for trained checkpoints. |
-| `simple_filter_dataset_grpo.py` | Response parsing, grounding reward, format reward, and pass-at-k utilities. |
-| `generate_scene_json_from_bbox_list.py`, `batch_generate_scene_json.py` | ScanNet bbox-to-scene-JSON preprocessing. |
-| `configs/` | Hydra configs for SFT, inference, and GRPO. |
-| `train_mllm.sh`, `train_grpo_mllm.sh` | Convenience launch scripts. |
-| `requirements-reference.txt` | Curated exact package versions observed in the `sgl055` development environment, provided as reference only. |
-| `sglang_0.5.5.post3.patch` | Reference patch for the SGLang version used in the original experiments. |
-| `libs/capeval/` | Caption-evaluation utilities used by the dataset and evaluation code. |
-| `data/` | Task annotations and scene metadata. Configure external dataset paths as described below. |
 
 ## Getting Started
 
@@ -102,8 +81,8 @@ Download the required components and arrange them using the structure below.
 
 | Component | Link | Description |
 | --- | --- | --- |
-| APEIRIA checkpoint | [Download](https://huggingface.co/kmichiru/OpenApeiria) | Released APEIRIA model checkpoint. |
-| Qwen3-VL-4B/8B-Instruct | [4B Download](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct)/[8B Download](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct) | Base MLLM model for SFT/RL. |
+| APEIRIA checkpoint | [Download](https://huggingface.co/kmichiru/OpenApeiria) | Released APEIRIA model checkpoint (LoRA-only). |
+| Qwen3-VL-4B/8B-Instruct | [4B Download](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct)/[8B Download](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct) | Base MLLM model. |
 | SVC data and features | [Download](https://huggingface.co/datasets/kmichiru/SVC) | Preprocessed 3D features, task annotations, and auxiliary files. |
 | ScanNet | [Apply / Download](https://www.scan-net.org/) | Raw ScanNet data. Follow the official ScanNet terms of use. |
 
@@ -125,6 +104,16 @@ ln -s <SCANNET_ROOT> data/scannet
 ln -s <SVC_ROOT> ../SVC
 ```
 
+Also, link several task annotation and metadata paths from `../SVC` to `data/`:
+
+```bash
+ln -s ../SVC/meta_data data/meta_data
+ln -s ../SVC/multi3drefer data/multi3drefer
+ln -s ../SVC/mmscan-obj-desc data/mmscan-obj-desc
+ln -s ../SVC/msqa data/msqa
+ln -s ../SVC/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4 data/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4
+```
+
 If you prefer a different layout, update `DATA_PATH` and `SVC_PATH` in `apeiria_lm_prog_to_thinking.py`.
 
 The expected high-level layout is:
@@ -135,17 +124,17 @@ The expected high-level layout is:
 |   |-- README.md
 |   |-- configs/
 |   |-- data/
-|   |   |-- scannet -> <SCANNET_ROOT>
+|   |   |-- scannet -> <SCANNET_ROOT> 
+|   |   |   |-- <scene0000_00> <scene0001_00>/ ... # raw ScanNet data for each scene
 |   |   |-- meta_data/
 |   |   |-- scannet_data/
 |   |   |-- multi3drefer/
 |   |   |-- mmscan-obj-desc/
 |   |   |-- msqa/
 |   |   |-- apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4/
-|   |   |-- *.json
+|   |   |   |-- *.json
 |   |-- scannet/
-|   |   |-- scans -> <SCANNET_SCANS>
-|   |   |-- scans_fixed/
+|   |   |-- scans_fixed/  # preprocessed ScanNet point clouds and point labels
 |   |-- train_mllm.sh
 |   |-- train_grpo_mllm.sh
 |-- SVC/
@@ -154,13 +143,14 @@ The expected high-level layout is:
 |   |   |   |-- scannet_gt_trainval_feat+bbox_feats_200obj2d3d.pt
 |   |   |   |-- scannet_mask3d_trainval_feat+bbox_feats_200obj2d3d_nms0.975_noinvalid_combined.pt
 |   |-- ...
-|-- Qwen3-VL-4B-Instruct/
-|-- Qwen3-VL-8B-Instruct/
+|-- Qwen3-VL-4B-Instruct/ # base MLLM
+|-- Qwen3-VL-8B-Instruct/ # base MLLM
 ```
 
-## Scene JSON Generation
+#### Scene JSON Generation
 
-APEIRIA uses object-centric scene JSON files containing object IDs, boxes, positions, classes, and captions. To regenerate them from ScanNet bbox files:
+APEIRIA uses object-centric scene JSON files containing object IDs, boxes, positions, classes, and captions. 
+To pre-process on your own or regenerate them from ScanNet bbox files:
 
 ```bash
 python batch_generate_scene_json.py
@@ -168,38 +158,29 @@ python batch_generate_scene_json.py
 
 Before running, check the paths at the top of `batch_generate_scene_json.py`, especially `scannet_dir`, `scannet_test_dir`, `output_dir`, and `data_dir`.
 
-For a single scene/bbox file:
-
-```bash
-python generate_scene_json_from_bbox_list.py \
-  -i scannet/scans_fixed/scene0000_00_aligned_bbox.npy \
-  -o data/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4/scene0000_00.json \
-  -c data/scene_object_top_captions_from_gpt4o.json \
-  -p 4
-```
 
 ## Training
 
 > **Note**: Training typically requires GPUs with at least 40GB of VRAM and 300-600GB of system RAM for 4-8 GPU runs. Results are saved to `<REPO_PARENT>/apeiria-output` by default. Please log in to `wandb` to track metrics, or disable it with `wandb disabled`.
 
-### Supervised Fine-Tuning
+### Run Stage 1 and 2
 
-SFT is launched through Hydra. The default config is `configs/apeiria_mllm.yaml`.
+Perception Alignment and CoT-SFT (Stage 1 and 2) is launched through Hydra. The default config is `configs/apeiria_mllm.yaml`.
 
 ```bash
 bash train_mllm.sh \
-  model_name=<QWEN3_VL_4B_MODEL> \
+  model_name=<QWEN3_VL_8B_MODEL> \
   resume_from_checkpoint=null \
   output_dir=outputs/sft \
   dataset_type='[scanrefer_nocot,nr3d_nocot,multi3drefer_nocot,sr3d_nocot]' \
   no_save=false
 ```
 
-The provided config files are executable examples. For a fresh run, override at least `model_name`, `resume_from_checkpoint`, `output_dir`, `dataset_type`, and the batch-size settings.
+Replace arguments with your desired settings such as model/datasets/batch_size/learning schedule.
 
-### GRPO/RL Training
+### Run Stage 3
 
-The RL stage uses asynchronous generation workers and can use SGLang for faster rollout generation. The default config is `configs/multimodal_grpo.yaml`.
+The CoT-RL stage (Stage 3) uses asynchronous generation workers and use SGLang for faster rollout generation. The default config is `configs/multimodal_grpo.yaml`.
 
 ```bash
 bash train_grpo_mllm.sh \
@@ -208,11 +189,9 @@ bash train_grpo_mllm.sh \
   dataset_type=scanrefer \
   num_inference_gpus=4 \
   num_training_gpus=4 \
-  use_sglang_for_generation=true \
-  hydra.run.dir=outputs/grpo/run1
 ```
 
-`simple_filter_dataset_grpo.py` contains the response parser and reward components used by the GRPO trainer. The most important knobs are `num_generations`, `rollout_batch_size`, `generation_micro_batch_size`, `max_completion_length`, `temperature`, and the reward shaping fields in `configs/multimodal_grpo.yaml`.
+Replace arguments with your desired settings such as model/datasets/batch_size/learning schedule.
 
 ## Offline Rollouts And Inference
 
@@ -226,19 +205,41 @@ python generate_trace_rollouts_offline_multigpu.py \
   output_dir=results/nr3d_rollouts \
   batch_size=16 \
   num_inference_passes=16 \
-  use_sglang_for_generation=true
 ```
 
 Supported dataset names are defined in `DATASET_CLSMAP` inside `train_apeiria_mllm.py` and the rollout script.
 
 ## Release TODO
 
-- [ ] Upload the final public checkpoints and keep the Hugging Face model card synchronized with the training and inference configs.
+- [x] Upload the final public checkpoints and keep the Hugging Face model card synchronized with the training and inference configs.
 - [x] Remove unused legacy code paths and simplify modules that still contain experiment-only utilities.
 - [x] Add an exact-version reference dependency file for the development environment.
 - [ ] Run cleaned code to test checkpoint inference.
 - [ ] Add modular enhancement instruction.
 - [x] Add the final repository license and any third-party attribution notes required by bundled evaluation utilities.
+
+## Repository Contents
+
+The repository is organized around the core APEIRIA training, inference, reward, and preprocessing components.
+
+| Path | Purpose |
+| --- | --- |
+| `apeiria_mllm.py` | Main 3D MLLM wrapper, object-feature projection, generation, and SGLang integration. |
+| `apeiria_mllm_config_schema.py` | Hydra config schema for SFT and inference. |
+| `apeiria_lm_prog_to_thinking.py` | Real 3D dataset construction, program-to-CoT conversion, task formatting, and evaluation parsing. |
+| `apeiria_lm_utils.py`, `apeiria_parser.py` | Synthetic data helpers, DSL parsing, and program utilities. |
+| `train_apeiria_mllm.py` | SFT training entry point. |
+| `train_apeiria_mllm_cot_rl_async.py` | Async GRPO/RL training entry point with SGLang generation workers. |
+| `train_apeiria_mllm_cot_rl.py` | Shared RL utilities used by the async trainer. |
+| `generate_trace_rollouts_offline_multigpu.py` | Multi-GPU inference and rollout generation for trained checkpoints. |
+| `simple_filter_dataset_grpo.py` | Response parsing, grounding reward, format reward, and pass-at-k utilities. |
+| `generate_scene_json_from_bbox_list.py`, `batch_generate_scene_json.py` | ScanNet bbox-to-scene-JSON preprocessing. |
+| `configs/` | Hydra configs for SFT, inference, and GRPO. |
+| `train_mllm.sh`, `train_grpo_mllm.sh` | Convenience launch scripts. |
+| `requirements-reference.txt` | Curated exact package versions observed in the `sgl055` development environment, provided as reference only. |
+| `sglang_0.5.5.post3.patch` | Reference patch for the SGLang version used in the original experiments. |
+| `libs/capeval/` | Caption-evaluation utilities used by the dataset and evaluation code. |
+| `data/` | Task annotations and scene metadata. Configure external dataset paths as described below. |
 
 ## Citation
 
@@ -248,17 +249,19 @@ If you find this work useful, please consider cite us:
 @inproceedings{mo2026,
   title={Distilling Neuro-Symbolic Programs into 3D Multi-modal LLMs},
   author={Mo, Wentao and Liu, Yang},
-  % booktitle={International Conference on Machine Learning},
+  booktitle={International Conference on Machine Learning},
   year={2026}
 }
 ```
 
 ## Acknowledgements
 
-This code builds on the open-source ecosystems around PyTorch, Hugging Face Transformers, PEFT, Hydra, SGLang, Qwen, ScanNet, ScanRefer, ReferIt3D, Multi3DRefer, ScanQA, and SQA3D. Please also follow the licenses and terms of the underlying datasets and pretrained models.
+This code builds upon the great work from previous 3D MLLMs and 3D foundation models, including but not limited to [Chat-Scene](github.com/ZzZZCHS/Chat-Scene), [SegDINO3D](https://github.com/IDEA-Research/SegDINO3D), [Mask3D](https://github.com/jonasschult/mask3d). Special thanks to the [SGLang]() library for fast multi-modal generation support to make the RL training possible. 
 
 ## License
 
 This code repository and datasets are licensed under a [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) license.
+
+Please also follow the licenses and terms of the underlying datasets and pretrained models.
 
 Copyright (c) 2026 Wentao Mo.

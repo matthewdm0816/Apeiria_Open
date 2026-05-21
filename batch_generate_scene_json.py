@@ -6,12 +6,11 @@ import multiprocessing
 from functools import partial
 
 PROJECT_HOME = os.path.dirname(os.path.abspath(__file__))
-scannet_dir = "/network_space/server129/shared_dataset/scannet/scans"
-scannet_test_dir = "/network_space/server129/shared_dataset/scannet/scans_test"
+scannet_dir = os.path.join(PROJECT_HOME, "data/scannet")
+scannet_test_dir = os.path.join(PROJECT_HOME, "data/scannet")
+
 output_dir = os.path.join(PROJECT_HOME, "scannet/scans_fixed")
 label_map_file = os.path.join(PROJECT_HOME, "data/scannetv2-labels.combined.tsv")
-# data_dir = os.path.join(PROJECT_HOME, "data/apeiria_scannet")
-# data_dir = os.path.join(PROJECT_HOME, "data/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed") # used to save 3D scene json for apeiria
 data_dir = os.path.join(PROJECT_HOME, "data/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4") # used to save 3D scene json for apeiria
 
 
@@ -21,7 +20,7 @@ os.makedirs(data_dir, exist_ok=True)
 scene_dirs = glob.glob(os.path.join(scannet_dir, "scene*_*")) + glob.glob(os.path.join(scannet_test_dir, "scene*_*"))
 
 scene_dirs = [d for d in glob.glob(os.path.join(scannet_dir, "scene*_*")) if os.path.isdir(d)]
-
+scene_dirs = list(set(scene_dirs))  # Remove duplicates
 
 print(f"Found {len(scene_dirs)} scenes to process.")
 
@@ -29,15 +28,15 @@ def process_scene(scene_dir, output_dir, label_map_file, data_dir):
     scene_name = os.path.basename(scene_dir)
     
     # Step 1: Generate bbox processed file
-    # cmd1 = [
-    #     "python", 
-    #     "load_scannet_detailed_scene.py",
-    #     "--scan_path", scene_dir,
-    #     "--output_file", os.path.join(output_dir, scene_name),
-    #     "--label_map_file", label_map_file
-    # ]
+    cmd1 = [
+        "python", 
+        "load_scannet_detailed_scene.py",
+        "--scan_path", scene_dir,
+        "--output_file", os.path.join(output_dir, scene_name),
+        "--label_map_file", label_map_file
+    ]
     
-    # subprocess.run(cmd1, cwd="./scannet", check=True)
+    subprocess.run(cmd1, cwd="./scannet", check=True)
 
     # Step 2: Generate scene json representation
     input_file = os.path.join(output_dir, f"{scene_name}_aligned_bbox.npy")
