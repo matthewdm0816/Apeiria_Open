@@ -6406,10 +6406,10 @@ class Real3DQADataset(Real3DDataset):
     def _get_annotation_file(self, split):
         """Get annotation file path based on dataset type and split."""
         DSET_PATH_SCANQA = {
-            "test_w_obj": f"{SVC_PATH}/ScanQA_v1.0_test_w_obj.json",
-            "test_wo_obj": f"{SVC_PATH}/ScanQA_v1.0_test_wo_obj.json",
-            "train": f"{SVC_PATH}/ScanQA_v1.0_train.json",
-            "val": f"{SVC_PATH}/ScanQA_v1.0_val.json",
+            "test_w_obj": f"{self.data_path}/ScanQA_v1.0_test_w_obj.json",
+            "test_wo_obj": f"{self.data_path}/ScanQA_v1.0_test_wo_obj.json",
+            "train": f"{self.data_path}/ScanQA_v1.0_train.json",
+            "val": f"{self.data_path}/ScanQA_v1.0_val.json",
         }
         DSET_PATH_SQA3D = {
             "test": f"{self.data_path}/SQA_test_aligned.json",
@@ -6417,8 +6417,8 @@ class Real3DQADataset(Real3DDataset):
             "val": f"{self.data_path}/SQA_val_aligned.json",
         }
         DSET_PATH_SCANQA_MV = {
-            "train": f"{SVC_PATH}/qa/ScanQA_mv_train_filtered_cleaned.json",
-            "val": f"{SVC_PATH}/qa/ScanQA_mv_val_filtered_cleaned.json",
+            "train": f"{self.data_path}/qa/ScanQA_mv_train_filtered_cleaned.json",
+            "val": f"{self.data_path}/qa/ScanQA_mv_val_filtered_cleaned.json",
         }
         DSET_PATH_MSQA = {
             "train": f"{self.data_path}/msqa/scannet/msqa_scannet_train_aligned.json",
