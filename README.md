@@ -193,31 +193,39 @@ Use `generate_trace_rollouts_offline_multigpu.py` to generate traces or evaluate
 
 ```bash
 python generate_trace_rollouts_offline_multigpu.py \
-  model_name=<QWEN3_VL_4B_MODEL> \
   resume_from_checkpoint=<CHECKPOINT_DIR> \
-  dataset_type=nr3d \
-  output_dir=results/nr3d_rollouts \
-  batch_size=16 \
-  num_inference_passes=16 \
+  dataset_type=scanrefer \
+  output_dir=results/apeiria_rollouts \
+  do_sample=false num_inference_passes=1 split=val \
+  batch_size=256 no_save=false location_precision=4 \
+  external_plan_path="" gt_scene_data_path="" previous_results_path="" \
 ```
 
-Supported dataset names are defined in `DATASET_CLSMAP` inside `train_apeiria_mllm.py` and the rollout script.
+`dataset_type` can be changed to `multi3drefer` or `scanrefer`.
 
 #### Modular Enhancement
 
-In APEIRIA, `scene()` execution in CoT can be replaced in-place by better perception modules. To do this, first generate SegDINO3D-based object info:
+In APEIRIA, `scene()` execution in CoT can be replaced in-place by better perception modules. To do this, first generate SegDINO3D-based object info (we also have provided the pre-processed [files](https://huggingface.co/datasets/kmichiru/SVC)):
 
 ```bash
 # TODO
 ```
 
-Then, run enhanced inference:
+Then, run base and enhanced inference:
 
 ```bash
 python generate_trace_rollouts_offline_multigpu.py \
   # TODO
 ```
 
+#### Replicate Results
+
+| Model | ScanRefer (Acc@0.25/@0.50) | Multi3DRefer (F1@0.25/@0.50) |
+| :--- | :--- | :--- |
+| APEIRIA (reported) | 58.4/51.2 | 59.2/53.8 |
+| APEIRIA (this code) | 58.1/51.1 | 59.5/54.1 |
+| APEIRIA w/ Modular Enhancement (reported) | 60.5/53.2 | 60.9/55.2 |
+| APEIRIA w/ Modular Enhancement (this code) | Row 2, Col 2 | Row 2, Col 3 |
 
 ## Release TODO
 
