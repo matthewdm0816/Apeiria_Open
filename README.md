@@ -12,14 +12,12 @@ This work is accepted by ICML 2026.
 
 ## Contents
 
-1. [Repository Contents](#repository-contents)
-2. [Getting Started](#getting-started)
-3. [Scene JSON Generation](#scene-json-generation)
-4. [Training](#training)
-5. [Offline Rollouts And Inference](#offline-rollouts-and-inference)
-6. [Release TODO](#release-todo)
-7. [Citation](#citation)
-8. [License](#license)
+1. [Getting Started](#getting-started)
+2. [Training](#training)
+3. [Offline Rollouts And Inference](#offline-rollouts-and-inference)
+4. [Release TODO](#release-todo)
+5. [Citation](#citation)
+6. [License](#license)
 
 
 
@@ -29,20 +27,18 @@ This section walks through the environment and data setup needed to run APEIRIA.
 
 ### 1. Environment Setup
 
-Configure the environment with the following commands, adjusting the PyTorch, FlashAttention, and SGLang installation for your platform as needed. SGLang is necessary for RL training and accelerated rollout generation. The recommended installation order is: create the environment, install `uv`, install PyTorch following the official PyTorch selector, install SGLang following the official SGLang guide, then install any remaining libraries.
+Configure the environment with the following commands, adjusting the PyTorch, FlashAttention, and SGLang installation for your platform as needed. SGLang is necessary for RL training and accelerated rollout generation. 
 
-`requirements-reference.txt` records exact versions for APEIRIA-relevant packages observed in the `sgl055` development environment. It is provided for reference and debugging only; these exact versions are not required for all users or platforms. Prefer the official installation commands for platform-sensitive packages.
+The recommended installation order is: create the environment, install `uv`, install PyTorch following the official PyTorch selector, install SGLang following the official SGLang guide, then install any remaining libraries.
 
 ```bash
-conda create -n sgl055 python=3.10
+conda create -n sgl055 python=3.12
 conda activate sgl055
 
 # Use uv for package management.
 python -m pip install --upgrade pip
 python -m pip install uv
 
-# Install PyTorch, torchvision, and torchaudio using the official selector:
-# https://pytorch.org/get-started/locally/
 # Example only; choose the command that matches your platform.
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
@@ -64,41 +60,35 @@ For exact package versions observed in the development environment, see `require
 
 #### SGLang Patch
 
-APEIRIA uses SGLang for feature-input MLLM generation during RL rollout and accelerated inference. The original experiments used SGLang `0.5.5.post3` with a small local patch for arbitrary feature/input-embedding generation:
+APEIRIA uses SGLang for feature-input MLLM generation during RL rollout and accelerated inference. The original experiments used SGLang `0.5.5.post3` with a small local patch for arbitrary feature/input-embedding generation at `sglang_0.5.5.post3.patch`. Without this patch, SGLang will raise [issue](https://github.com/sgl-project/sglang/issues/14109) when retracting decoding requests that would exceed reserved KV memory.
 
-```bash
-sglang_0.5.5.post3.patch
-```
-Without this patch, SGLang will raise [issue](https://github.com/sgl-project/sglang/issues/14109) when retracting decoding requests that would exceed reserved KV memory.
 If you reproduce the exact environment, install `sglang==0.5.5.post3` and apply the patch to the matching SGLang source tree. 
 Newer SGLang versions should have already contain an equivalent fix through a different implementation path; prefer upstream SGLang when it works with APEIRIA's feature-input generation.
 
 ### 2. Data Setup
 
-#### Download Files
-
-Download the required components and arrange them using the structure below.
+#### Data, Model and Features Download
 
 | Component | Link | Description |
 | --- | --- | --- |
 | APEIRIA checkpoint | [Download](https://huggingface.co/kmichiru/OpenApeiria) | Released APEIRIA model checkpoint (LoRA-only). |
-| Qwen3-VL-4B/8B-Instruct | [4B Download](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct)/[8B Download](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct) | Base MLLM model. |
-| 3D features | [Download](https://huggingface.co/kmichiru/OpenApeiria/pc_features) | Pre-extracted 3D features adapted from Chat-Scene |
-| Data Compilation | [Download](https://huggingface.co/kmichiru/OpenApeiria/data) | Precompiled task annotations and scene JSON files. |
-| ScanNet | [Apply / Download](https://www.scan-net.org/) | Raw ScanNet data. Follow the official ScanNet terms of use. |
+| Qwen3-VL-4B/8B | [4B Download](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct)/[8B Download](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct) | Base MLLM model. |
+| 3D features | [Download](https://huggingface.co/kmichiru/OpenApeiria/blob/main/pc_features.zip) | Pre-extracted 3D features adapted from Chat-Scene |
+| Data Compilation | [Download](https://huggingface.co/kmichiru/OpenApeiria/blob/main/data.zip) | Precompiled task annotations and scene JSON files. |
+| ScanNet (Optional) | [Download](https://www.scan-net.org/) | Raw ScanNet data. Follow the official ScanNet terms of use. |
 
 #### Organize Files
 
-The code expects external datasets and precomputed features to be available through the following paths:
+After downloading, unzip 3D features (`data.zip`) and data compilation (`pc_features.zip`). The code expects external datasets and precomputed features to be available through the following paths:
 
 - `data/` to contain task annotations and scene JSON files.
-- `data/scannet` to point to the ScanNet release directory.
-
 - `data/pc_features/` for precomputed 3D proposal features:
   - `scannetv2-vote2cap-feature_box_features_281d.pkl`
   - `chatscene_features/scannet_gt_trainval_feat+bbox_feats_200obj2d3d.pt`
   - `chatscene_features/scannet_mask3d_trainval_feat+bbox_feats_200obj2d3d_nms0.975_noinvalid_combined.pt`
   - Move the downloaded 3D features to `data/pc_features/`. (Update the paths in the config if needed)
+- (Optional) `data/scannet` to point to the ScanNet release directory .
+
 
 
 The expected high-level layout is:
@@ -190,7 +180,7 @@ python generate_trace_rollouts_offline_multigpu.py \
 
 #### Modular Enhancement
 
-In APEIRIA, `scene()` execution in CoT can be replaced in-place by better perception modules. To do this, first generate SegDINO3D-based object info (we also have provided the pre-processed [files](https://huggingface.co/datasets/kmichiru/SVC)):
+In APEIRIA, `scene()` execution in CoT can be replaced in-place by better perception modules. To do this, first generate SegDINO3D-based object info (we also have provided the pre-processed files):
 
 ```bash
 # TODO
@@ -240,29 +230,6 @@ python generate_trace_rollouts_offline_multigpu.py \
 - [ ] Add SegDINO3D-based object info generation code and instructions.
 - [x] Add the final repository license and any third-party attribution notes required by bundled evaluation utilities.
 
-## Repository Contents
-
-The repository is organized around the core APEIRIA training, inference, reward, and preprocessing components.
-
-| Path | Purpose |
-| --- | --- |
-| `apeiria_mllm.py` | Main 3D MLLM wrapper, object-feature projection, generation, and SGLang integration. |
-| `apeiria_mllm_config_schema.py` | Hydra config schema for SFT and inference. |
-| `apeiria_lm_prog_to_thinking.py` | Real 3D dataset construction, program-to-CoT conversion, task formatting, and evaluation parsing. |
-| `apeiria_lm_utils.py`, `apeiria_parser.py` | Synthetic data helpers, DSL parsing, and program utilities. |
-| `train_apeiria_mllm.py` | SFT training entry point. |
-| `train_apeiria_mllm_cot_rl_async.py` | Async GRPO/RL training entry point with SGLang generation workers. |
-| `train_apeiria_mllm_cot_rl.py` | Shared RL utilities used by the async trainer. |
-| `generate_trace_rollouts_offline_multigpu.py` | Multi-GPU inference and rollout generation for trained checkpoints. |
-| `simple_filter_dataset_grpo.py` | Response parsing, grounding reward, format reward, and pass-at-k utilities. |
-| `generate_scene_json_from_bbox_list.py`, `batch_generate_scene_json.py` | ScanNet bbox-to-scene-JSON preprocessing. |
-| `configs/` | Hydra configs for SFT, inference, and GRPO. |
-| `train_mllm.sh`, `train_grpo_mllm.sh` | Convenience launch scripts. |
-| `requirements-reference.txt` | Curated exact package versions observed in the `sgl055` development environment, provided as reference only. |
-| `sglang_0.5.5.post3.patch` | Reference patch for the SGLang version used in the original experiments. |
-| `libs/capeval/` | Caption-evaluation utilities used by the dataset and evaluation code. |
-| `data/` | Task annotations and scene metadata. Configure external dataset paths as described below. |
-
 ## Citation
 
 If you find this work useful, please consider cite us:
@@ -283,7 +250,6 @@ This code builds upon the great work from previous 3D MLLMs and 3D foundation mo
 ## License
 
 This code repository and datasets are licensed under a [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) license.
-
 Please also follow the licenses and terms of the underlying datasets and pretrained models.
 
 Copyright (c) 2026 Wentao Mo.
