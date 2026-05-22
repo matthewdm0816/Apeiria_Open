@@ -1840,12 +1840,12 @@ class Real3DDataset(Dataset, Templates, ScanNetMixin, DefaultViewSelectionMixin)
         if type == "pnpp":
             return f"{DATA_PATH}/scannetv2-pnpp-feature.pkl"
         elif type == "pnpp-vote2cap-box":
-            return f"{SVC_PATH}/pc_features/scannetv2-vote2cap-feature_box_features_281d.pkl" # its box need flip!
+            return f"{DATA_PATH}/pc_features/scannetv2-vote2cap-feature_box_features_281d.pkl" # its box need flip!
             # return f"{SVC_PATH}/pc_features/scannetv2-vote2cap-feature-new-2_box_features_281d.pkl" # this don't
         elif type == "uni3d-mask3d-box":
-            return f"{SVC_PATH}/pc_features/chatscene_features/scannet_mask3d_trainval_feat+bbox_feats_200obj2d3d_nms0.975_noinvalid_combined.pt" # 1030d
+            return f"{DATA_PATH}/pc_features/chatscene_features/scannet_mask3d_trainval_feat+bbox_feats_200obj2d3d_nms0.975_noinvalid_combined.pt" # 1030d
         elif type == "uni3d-mask3d-gt":
-            return f"{SVC_PATH}/pc_features/chatscene_features/scannet_gt_trainval_feat+bbox_feats_200obj2d3d.pt" # 1030d
+            return f"{DATA_PATH}/pc_features/chatscene_features/scannet_gt_trainval_feat+bbox_feats_200obj2d3d.pt" # 1030d
         elif type == "pnpp-vote2cap-enc":
             return f"{DATA_PATH}/scannetv2-vote2cap-feature_enc_features_259d.pkl"
         else:

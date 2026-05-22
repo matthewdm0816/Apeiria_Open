@@ -83,7 +83,8 @@ Download the required components and arrange them using the structure below.
 | --- | --- | --- |
 | APEIRIA checkpoint | [Download](https://huggingface.co/kmichiru/OpenApeiria) | Released APEIRIA model checkpoint (LoRA-only). |
 | Qwen3-VL-4B/8B-Instruct | [4B Download](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct)/[8B Download](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct) | Base MLLM model. |
-| SVC data and features | [Download](https://huggingface.co/datasets/kmichiru/SVC) | Preprocessed 3D features, task annotations, and auxiliary files. |
+| 3D features | [Download](https://huggingface.co/kmichiru/OpenApeiria/feature) | Pre-extracted 3D features adapted from Chat-Scene |
+| Data Compilation | [Download](https://huggingface.co/kmichiru/OpenApeiria/data) | Precompiled task annotations and scene JSON files. |
 | ScanNet | [Apply / Download](https://www.scan-net.org/) | Raw ScanNet data. Follow the official ScanNet terms of use. |
 
 #### Organize Files
@@ -161,7 +162,9 @@ Before running, check the paths at the top of `batch_generate_scene_json.py`, es
 
 ## Training
 
-> **Note**: Training typically requires GPUs with at least 40GB of VRAM and 300-600GB of system RAM for 4-8 GPU runs. Results are saved to `<REPO_PARENT>/apeiria-output` by default. Please log in to `wandb` to track metrics, or disable it with `wandb disabled`.
+> **Note**: Training typically requires GPUs with at least 40GB of VRAM and 300-600GB of system RAM for 4-8 GPU runs. Results are saved to `<REPO_PARENT>/apeiria-output` by default. 
+If no sufficient memory, SGLang worker might **quit siliently** and cause the whole training/inference to stall. 
+Please log in to `wandb` to track metrics, or disable it with `wandb disabled`.
 
 ### Run Stage 1 and 2
 
@@ -198,7 +201,7 @@ python generate_trace_rollouts_offline_multigpu.py \
   output_dir=results/apeiria_rollouts \
   do_sample=false num_inference_passes=1 split=val \
   batch_size=256 no_save=false location_precision=4 \
-  external_plan_path="" gt_scene_data_path="" previous_results_path="" \
+  gt_scene_data_path="" previous_results_path="" \
 ```
 
 `dataset_type` can be changed to `multi3drefer` or `scanrefer`.
@@ -215,7 +218,25 @@ Then, run base and enhanced inference:
 
 ```bash
 python generate_trace_rollouts_offline_multigpu.py \
-  # TODO
+  resume_from_checkpoint=<CHECKPOINT_DIR> \
+  dataset_type=scanrefer \
+  output_dir=results/apeiria_rollouts \
+  do_sample=false num_inference_passes=1 split=val \
+  batch_size=256 no_save=false location_precision=4 \
+  gt_scene_data_path="" previous_results_path="" \
+```
+
+This step will run APEIRIA inference and save output to `results/apeiria_rollouts/<run_timestamp>/`. Then, update `previous_results_path` to point to the base APEIRIA inference results, and run again with the same command to generate enhanced rollouts with SegDINO3D object info.
+
+```bash
+python generate_trace_rollouts_offline_multigpu.py \
+  resume_from_checkpoint=<CHECKPOINT_DIR> \
+  dataset_type=scanrefer \
+  output_dir=results/apeiria_rollouts \
+  do_sample=false num_inference_passes=1 split=val \
+  batch_size=256 no_save=false location_precision=4 \
+  gt_scene_data_path="data/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_mask3d_box_segdino3d_pred" \
+  previous_results_path="results/apeiria_rollouts/<run_timestamp>/all_results.json" \
 ```
 
 #### Replicate Results
@@ -232,8 +253,9 @@ python generate_trace_rollouts_offline_multigpu.py \
 - [x] Upload the final public checkpoints and keep the Hugging Face model card synchronized with the training and inference configs.
 - [x] Remove unused legacy code paths and simplify modules that still contain experiment-only utilities.
 - [x] Add an exact-version reference dependency file for the development environment.
-- [ ] Run cleaned code to test checkpoint inference.
-- [ ] Add modular enhancement instruction.
+- [x] Run cleaned code to test checkpoint inference.
+- [x] Add modular enhancement instruction.
+- [ ] Add SegDINO3D-based object info generation code and instructions.
 - [x] Add the final repository license and any third-party attribution notes required by bundled evaluation utilities.
 
 ## Repository Contents
