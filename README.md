@@ -83,7 +83,7 @@ Download the required components and arrange them using the structure below.
 | --- | --- | --- |
 | APEIRIA checkpoint | [Download](https://huggingface.co/kmichiru/OpenApeiria) | Released APEIRIA model checkpoint (LoRA-only). |
 | Qwen3-VL-4B/8B-Instruct | [4B Download](https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct)/[8B Download](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct) | Base MLLM model. |
-| 3D features | [Download](https://huggingface.co/kmichiru/OpenApeiria/feature) | Pre-extracted 3D features adapted from Chat-Scene |
+| 3D features | [Download](https://huggingface.co/kmichiru/OpenApeiria/pc_features) | Pre-extracted 3D features adapted from Chat-Scene |
 | Data Compilation | [Download](https://huggingface.co/kmichiru/OpenApeiria/data) | Precompiled task annotations and scene JSON files. |
 | ScanNet | [Apply / Download](https://www.scan-net.org/) | Raw ScanNet data. Follow the official ScanNet terms of use. |
 
@@ -93,29 +93,13 @@ The code expects external datasets and precomputed features to be available thro
 
 - `data/` to contain task annotations and scene JSON files.
 - `data/scannet` to point to the ScanNet release directory.
-- `../SVC` to exist as a sibling directory of this repository. It stores large 3D features and task data used by the dataset code.
-- Proposal features under `../SVC/pc_features/chatscene_features/`, including:
-  - `scannet_gt_trainval_feat+bbox_feats_200obj2d3d.pt`
-  - `scannet_mask3d_trainval_feat+bbox_feats_200obj2d3d_nms0.975_noinvalid_combined.pt`
 
-For a new machine, recreate the same layout with symlinks:
+- `data/pc_features/` for precomputed 3D proposal features:
+  - `scannetv2-vote2cap-feature_box_features_281d.pkl`
+  - `chatscene_features/scannet_gt_trainval_feat+bbox_feats_200obj2d3d.pt`
+  - `chatscene_features/scannet_mask3d_trainval_feat+bbox_feats_200obj2d3d_nms0.975_noinvalid_combined.pt`
+  - Move the downloaded 3D features to `data/pc_features/`. (Update the paths in the config if needed)
 
-```bash
-ln -s <SCANNET_ROOT> data/scannet
-ln -s <SVC_ROOT> ../SVC
-```
-
-Also, link several task annotation paths from `../SVC` to `data/`:
-
-```bash
-ln -s ../SVC/multi3drefer data/multi3drefer
-mkdir -p data/mmscan-obj-desc
-ln -s ../SVC/scannet_obj_infos data/mmscan-obj-desc/scannet_obj_infos
-ln -s ../SVC/msqa data/msqa
-ln -s ../SVC/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4 data/apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4
-```
-
-If you prefer a different layout, update `DATA_PATH` and `SVC_PATH` in `apeiria_lm_prog_to_thinking.py`.
 
 The expected high-level layout is:
 
@@ -125,25 +109,23 @@ The expected high-level layout is:
 |   |-- README.md
 |   |-- configs/
 |   |-- data/
-|   |   |-- scannet -> <SCANNET_ROOT> 
+|   |   |-- scannet -> <SCANNET_ROOT>
 |   |   |   |-- <scene0000_00> <scene0001_00>/ ... # raw ScanNet data for each scene
 |   |   |-- meta_data/
-|   |   |-- scannet_data/
-|   |   |-- multi3drefer/
-|   |   |-- mmscan-obj-desc/
-|   |   |-- msqa/
-|   |   |-- apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4/
-|   |   |   |-- *.json
+|   |   |-- scannet_data
+|   |   |-- apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4
+|   |   |   |-- <scene0000_00> <scene0001_00> ... .json
+apeiria_scannet_w_caption_gpt4o_and_corners_and_nyu_names_fixed_prec4
+|   |   |   |-- <scene0000_00> <scene0001_00> ... .json
+|   |   |-- *.json              # task annotations
+|   |   |-- pc_features/        # precomputed 3D features
+|   |   |   |-- chatscene_features/
+|   |   |   |   |-- scannet_gt_trainval_feat+bbox_feats_200obj2d3d.pt
+|   |   |   |   |-- scannet_mask3d_trainval_feat+bbox_feats_200obj2d3d_nms0.975_noinvalid_combined.pt
 |   |-- scannet/
 |   |   |-- scans_fixed/  # preprocessed ScanNet point clouds and point labels
 |   |-- train_mllm.sh
 |   |-- train_grpo_mllm.sh
-|-- SVC/
-|   |-- pc_features/
-|   |   |-- chatscene_features/
-|   |   |   |-- scannet_gt_trainval_feat+bbox_feats_200obj2d3d.pt
-|   |   |   |-- scannet_mask3d_trainval_feat+bbox_feats_200obj2d3d_nms0.975_noinvalid_combined.pt
-|   |-- ...
 |-- Qwen3-VL-4B-Instruct/ # base MLLM
 |-- Qwen3-VL-8B-Instruct/ # base MLLM
 ```
