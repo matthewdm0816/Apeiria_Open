@@ -27,14 +27,7 @@ compile_model: true
 compile_train_model: false
 attn_implementation: flash_attention_2
 
-# load_checkpoint: "../22-22-28/checkpoint-epoch1/" # only learn align and filter
-# load_checkpoint: "../22-22-28/checkpoint-epoch2/" # random guess on relate
-# load_checkpoint: "../22-22-28/checkpoint-epoch5/" # grokked on relate
-# load_checkpoint: "../apeiria-output/2025-04-12/23-39-30/checkpoint-epoch9"
-# load_checkpoint: "../apeiria-output/2025-04-12/23-39-30/checkpoint-epoch2"
-# load_checkpoint: "../checkpoint-epoch5/"
-# load_checkpoint: "../apeiria-output/dpo/2025-07-29/01-53-46/checkpoint-epoch-3/" # DPO-tuned for one iteration
-load_checkpoint: "../apeiria-ckpts/21-27-58/checkpoint-epoch-5/"
+load_checkpoint: "" # SFT or other checkpoint to continue
 
 # Multimodal model settings
 max_objects: 130
@@ -88,7 +81,7 @@ num_training_gpus: 4
 num_iterations: 3
 num_steps: 500 # will be updated by real dataset size
 rollout_batch_size: 128
-num_generations: 8 # be compatible with 48 generation batch size: 32x15=480=48x10, no small additional batches
+num_generations: 8 
 generation_micro_batch_size: 256 # if use sglang, this can be infinite large - it will automatically split
 train_micro_batch_size: 4 # on all devices
 ref_model_micro_batch_size: 2 # device-wise
@@ -107,7 +100,7 @@ update_iters: 1 # we shall only expect mean reward increase after generation mod
 temperature: 1.2 # temperature for the generation model
 normalize_advantages: false
 use_gradient_checkpointing: true
-optimizer_type: adamw
+optimizer_type: muon
 
 # Length shaping
 L_min: 300

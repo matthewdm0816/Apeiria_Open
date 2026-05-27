@@ -33,8 +33,7 @@ transformers_verbosity_other: "warning" # Options: debug, info, warning, error, 
 
 
 # --- Model parameters ---
-# model_name: "../Qwen2.5-3B-Instruct" 
-model_name: "../Qwen3-VL-4B-Instruct" 
+model_name: "../Qwen3-VL-8B-Instruct" 
 attn_implementation: "flash_attention_2"
 max_objects: 130
 no_object_in_language_model: false 
@@ -73,48 +72,19 @@ use_rslora: false
 load_from_cache: false
 ratio: 1.0
 dataset_type: "[sr3d, sr3d_filter, sr3d_object_info]" 
-# curriculum_stages:
-#   - epoch: 0
-#     datasets: ["sr3d_filter", "sr3d_object_info"]
-#   - epoch: 2
-# #     datasets: ["sr3d_filter", "sr3d_object_info", "sr3d"]
-# curriculum_stages:
-#   - epoch: 0
-#     datasets: ["sr3d_object_info"]
-#   - epoch: 3
-#     datasets: ["sr3d_object_info", "scannet_attributes"]
-#   - epoch: 4
-#     datasets: ["sr3d_object_info", "scannet_attributes", "sr3d_filter", "sr3d_filter_attribute"]
-#   - epoch: 6
-#     datasets: ["sr3d_object_info", "scannet_attributes", "sr3d_filter", "sr3d_filter_attribute", "scanrefer_nocot", "nr3d_nocot", "multi3drefer_nocot", "sr3d", "scanrefer_dense", "nr3d_dense", "sr3d_dense", "sqa3d", "scanqa", "msqa", "scene-r1"] # msqa is too large now
-#   # - epoch: 6
-#   #   datasets: ["sr3d_filter_attribute"] # debug multi3drefer
-#   - epoch: 7
-#     datasets: ["scanrefer_caption_cot", "nr3d_caption_cot"]
-
-# curriculum_stages:
-#   - epoch: 0
-#     datasets: ["scanrefer_caption_cot", "nr3d_caption_cot"]
+curriculum_stages:
+  - epoch: 0
+    datasets: ["sr3d_object_info"]
+  - epoch: 3
+    datasets: ["sr3d_object_info", "scannet_attributes"]
+  - epoch: 4
+    datasets: ["sr3d_object_info", "scannet_attributes", "sr3d_filter", "sr3d_filter_attribute"]
+  - epoch: 6
+    datasets: ["sr3d_object_info", "scannet_attributes", "sr3d_filter", "sr3d_filter_attribute", "scanrefer_nocot", "nr3d_nocot", "multi3drefer_nocot", "sr3d", "scanrefer_dense", "nr3d_dense", "sr3d_dense", "sqa3d", "scanqa", "msqa", "scene-r1"] # msqa is too large now
 
 curriculum_stages:
   - epoch: 0
     datasets: ["scanrefer_nocot", "nr3d_nocot", "multi3drefer_nocot", "sr3d_nocot"]
-
-# curriculum_stages:
-#   - epoch: 0
-#     datasets: ["sr3d_object_info", "scannet_attributes", "sr3d_filter", "scanrefer_nocot", "nr3d_nocot", "sr3d", "scene-r1", "scanrefer_dense", "nr3d_dense", "sr3d_dense", "sqa3d", "scanqa", "msqa"]
-
-# curriculum_stages:
-#   - epoch: 0
-#     datasets: ["sr3d_object_info"]
-#   - epoch: 2
-#     datasets: ["sr3d_object_info", "sr3d_filter"]
-#   - epoch: 4
-#     datasets: ["sr3d_object_info", "sr3d_filter", "sr3d"] # "scanrefer_dense", "nr3d_dense", "sr3d_dense", "sqa3d", "scanqa", "msqa"]
-
-# curriculum_stages:
-#   - epoch: 0
-#     datasets: ["sr3d_filter", "sr3d_object_info", "sr3d", "scene-r1"]
 
 enable_curriculum: true
 no_object_id_input: true
@@ -185,12 +155,7 @@ no_save: true
 eval_logging_frequency: 20 
 iou_threshold: 0.25 
 
-# resume_from_checkpoint: "../apeiria-output/2025-07-04/16-36-12/checkpoint-epoch4"
-# resume_from_checkpoint: "../apeiria-output/2025-10-28/20-06-27/checkpoint-epoch3/"
-# resume_from_checkpoint: "../apeiria-output/2025-10-29/21-52-28/checkpoint-epoch4/"
-# resume_from_checkpoint: "../apeiria-output/2025-11-02/11-05-44/checkpoint-epoch3/"
-# resume_from_checkpoint: "/network_space/server127_2/shared/mwt/apeiria-ckpt-2/14-15-18/checkpoint-epoch6/" # 8B best
-resume_from_checkpoint: "/network_space/server128/mwt/apeiria-ckpts/4Bvl-checkpoint-epoch7/" # 4B best
+resume_from_checkpoint: ""
 resume_from_checkpoint_epoch: False # start over lr schedule
 
 # --- Other optimization parameters ---
